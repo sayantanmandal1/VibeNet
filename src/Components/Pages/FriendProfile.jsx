@@ -4,7 +4,7 @@ import Navbar from "../Navbar/Navbar";
 import RightSide from "../RightSidebar/RightSide";
 import profilePic from "../../assets/images/profilePic.jpg";
 import avatar from "../../assets/images/avatar.jpg";
-import { collection, where, query, onSnapshot, getDocs, updateDoc, arrayUnion, arrayRemove, doc } from "firebase/firestore";
+import { collection, where, query, onSnapshot, getDocs, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useParams } from "react-router-dom";
 import { useContext } from "react";

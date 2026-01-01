@@ -20,12 +20,6 @@ const darkTheme = {
   card: "#242526",
   accent: "#1a73e8",
 };
-const lightTheme = {
-  background: "#f5f6fa",
-  text: "#18191a",
-  card: "#fff",
-  accent: "#1a73e8",
-};
 
 const GlobalStyle = createGlobalStyle`
   body {

@@ -61,3 +61,26 @@
 .post-action-button:hover {
   color: var(--primary-color);
 }
+/* Like button active state */
+.post-action-button.liked {
+  color: #3b82f6;
+}
+
+.post-action-button.liked img {
+  filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+}
+
+/* Loading states */
+.post-action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Post image styles */
+.post-image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 10px;
+}

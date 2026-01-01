@@ -2,40 +2,34 @@ import React, { createContext, useState, useEffect } from "react";
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  signOut,
 } from "firebase/auth";
-import { auth, db, onAuthStateChanged } from "../firebase/firebase";
-import { query, where, collection, getDocs, addDoc } from "firebase/firestore";
+import { auth } from "../firebase/firebase";
 import { useNavigate } from "react-router-dom";
+import apiClient from "../../config/api";
 
 export const AuthContext = createContext();
 
 const AppContext = ({ children }) => {
-  const collectionUsersRef = collection(db, "users");
   const provider = new GoogleAuthProvider();
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true); // To track auth state loading
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const signInWithGoogle = async () => {
     try {
       const popup = await signInWithPopup(auth, provider);
-      const user = popup.user;
-      const q = query(collectionUsersRef, where("uid", "==", user.uid));
-      const docs = await getDocs(q);
-      if (docs.docs.length === 0) {
-        await addDoc(collectionUsersRef, {
-          uid: user?.uid,
-          name: user?.displayName,
-          email: user?.email,
-          image: user?.photoURL,
-          authProvider: popup?.providerId,
-        });
-      }
+      const idToken = await popup.user.getIdToken();
+      
+      const response = await apiClient.googleAuth(idToken);
+      
+      // Store token and user data
+      localStorage.setItem('authToken', response.token);
+      setUser(response.user);
+      setUserData(response.user);
+      
+      navigate('/home');
     } catch (err) {
       alert(err.message);
       console.log(err.message);
@@ -44,7 +38,14 @@ const AppContext = ({ children }) => {
 
   const loginWithEmailAndPassword = async (email, password) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const response = await apiClient.login({ email, password });
+      
+      // Store token and user data
+      localStorage.setItem('authToken', response.token);
+      setUser(response.user);
+      setUserData(response.user);
+      
+      navigate('/home');
     } catch (err) {
       alert(err.message);
       console.log(err.message);
@@ -53,14 +54,14 @@ const AppContext = ({ children }) => {
 
   const registerWithEmailAndPassword = async (name, email, password) => {
     try {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      const user = res.user;
-      await addDoc(collectionUsersRef, {
-        uid: user.uid,
-        name,
-        providerId: "email/password",
-        email: user.email,
-      });
+      const response = await apiClient.register({ name, email, password });
+      
+      // Store token and user data
+      localStorage.setItem('authToken', response.token);
+      setUser(response.user);
+      setUserData(response.user);
+      
+      navigate('/home');
     } catch (err) {
       alert(err.message);
       console.log(err.message);
@@ -78,60 +79,46 @@ const AppContext = ({ children }) => {
   };
 
   const signOutUser = async () => {
-    await signOut(auth);
-    setUser(null);
-    setUserData(null);
+    try {
+      await apiClient.logout();
+    } catch (err) {
+      console.log('Logout error:', err);
+    } finally {
+      localStorage.removeItem('authToken');
+      setUser(null);
+      setUserData(null);
+      navigate('/');
+    }
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const q = query(collectionUsersRef, where("uid", "==", currentUser.uid));
-        const snapshot = await getDocs(q);
-        setUser(currentUser);
-        setUserData(snapshot.docs[0]?.data());
-      } else {
-        setUser(null);
-        setUserData(null);
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      
+      if (token) {
+        try {
+          const response = await apiClient.getCurrentUser();
+          setUser(response.user);
+          setUserData(response.user);
+        } catch (error) {
+          console.error('Failed to get current user:', error);
+          localStorage.removeItem('authToken');
+        }
       }
-      setLoading(false); // Authentication state is now resolved
-    });
-
-    return () => unsubscribe();
-  }, [collectionUsersRef]);
-
-  // Handle navigation after auth state is established
-  useEffect(() => {
-    if (!loading) {
-      // Only navigate after loading is complete
-      if (user) {
-        navigate("/home"); // Navigate to home if user is logged in
-      }
-      // Do NOT navigate to landing page if not logged in; allow login/register
-    }
-  }, [user, loading, navigate]);
-
-  useEffect(() => {
-    const getUserData = async () => {
-      const q = query(collectionUsersRef, where("email", "==", user?.email));
-      const snapshot = await getDocs(q);
-      if (snapshot.docs.length > 0) {
-        setUserData(snapshot.docs[0].data());
-      }
+      
+      setLoading(false);
     };
-    if (user) getUserData();
-  }, [user, collectionUsersRef]);
+
+    initializeAuth();
+  }, []);
 
   useEffect(() => {
-    if (user?.email && collectionUsersRef) {
-      const fetchUserData = async () => {
-        // Fetch user data logic
-      };
-      fetchUserData();
+    if (!loading && user) {
+      navigate("/home");
     }
-  }, [user?.email, collectionUsersRef]); // Added missing dependency
+  }, [loading, user, navigate]);
 
-  const initialState = {
+  const value = {
     signInWithGoogle,
     loginWithEmailAndPassword,
     registerWithEmailAndPassword,
@@ -139,12 +126,12 @@ const AppContext = ({ children }) => {
     signOutUser,
     user,
     userData,
-    collectionRef: collection(db, "posts"),
+    loading,
   };
 
   return (
-    <AuthContext.Provider value={initialState}>
-      {loading ? <div>Loading...</div> : children} {/* Show loading while checking auth */}
+    <AuthContext.Provider value={value}>
+      {loading ? <div>Loading...</div> : children}
     </AuthContext.Provider>
   );
 };

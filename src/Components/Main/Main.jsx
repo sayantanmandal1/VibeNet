@@ -3,77 +3,55 @@ import { AuthContext } from "../AppContext/AppContext";
 import { FaImage, FaVideo, FaSmile } from "react-icons/fa";
 import "./Main.css";
 import PostCard from "./PostCard";
-import {
-  collection,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  limit,
-  startAfter,
-  getDocs,
-} from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import apiClient from "../../config/api";
 import { PostsReducer, postActions, postsStates } from "../AppContext/PostReducer";
 
-const POSTS_PAGE_SIZE = 5;
-
 const Main = () => {
-  const { user, userData, collectionRef } = useContext(AuthContext);
+  const { user, userData } = useContext(AuthContext);
   const [text, setText] = useState("");
   const [image, setImage] = useState(null);
-  const [notification, setNotification] = useState(null); // For custom notifications
-  const postRef = doc(collection(db, "posts"));
-  const document = postRef.id;
+  const [notification, setNotification] = useState(null);
   const [state, dispatch] = React.useReducer(PostsReducer, postsStates);
   const { SUBMIT_POST, HANDLE_ERROR } = postActions;
   const fileRef = useRef(null);
   const scrollRef = useRef(null);
-  const [lastVisible, setLastVisible] = useState(null);
+  const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [following, setFollowing] = useState([]);
-
-  // Fetch following list
-  useEffect(() => {
-    if (userData?.following) {
-      setFollowing(userData.following);
-    } else {
-      setFollowing([]);
-    }
-  }, [userData]);
+  const [loading, setLoading] = useState(true);
 
   const handleSubmitPost = async (e) => {
     e.preventDefault();
-    if (text !== "") {
+    if (text.trim() !== "") {
       try {
-        await setDoc(postRef, {
-          documentId: document,
-          uid: user?.uid || userData?.uid,
-          logo: user?.photoURL,
-          name: user?.displayName || userData?.name,
-          email: user?.email || userData?.email,
-          text: text,
-          image: image,
-          timestamp: serverTimestamp(),
+        const postData = {
+          content: text,
+          image: image // This will be a File object, not base64
+        };
+
+        const response = await apiClient.createPost(postData);
+        
+        // Add new post to the beginning of the posts array
+        dispatch({
+          type: SUBMIT_POST,
+          posts: [response.post, ...state.posts]
         });
+
         setText("");
-        // Show success notification
+        setImage(null);
+        
         setNotification({
           show: true,
           message: "Post submitted successfully!",
           type: "success",
         });
-        setTimeout(() => setNotification(null), 3000); // Remove notification after 3 seconds
+        setTimeout(() => setNotification(null), 3000);
       } catch (err) {
         dispatch({ type: HANDLE_ERROR });
         setNotification({ show: true, message: err.message, type: "error" });
         console.log(err.message);
       }
     } else {
-      dispatch({ type: HANDLE_ERROR });
       setNotification({
         show: true,
         message: "Please enter some text to post.",
@@ -82,68 +60,50 @@ const Main = () => {
     }
   };
 
-  useEffect(() => {
-    let unsubscribe = null;
-    if (collectionRef) {
-      try {
-        const q = query(collectionRef, orderBy("timestamp", "desc"), limit(POSTS_PAGE_SIZE));
-        unsubscribe = onSnapshot(q, (docSnap) => {
-          let posts = docSnap.docs.map((item) => item.data());
-          // Personalize: only show posts from following or self
-          if (user?.uid && following.length > 0) {
-            posts = posts.filter(
-              (p) => following.includes(p.uid) || p.uid === user.uid
-            );
-          } else if (user?.uid) {
-            posts = posts.filter((p) => p.uid === user.uid);
-          }
-          dispatch({ type: SUBMIT_POST, posts });
-          setImage(null);
-          setLastVisible(docSnap.docs[docSnap.docs.length - 1]);
-          setHasMore(docSnap.docs.length === POSTS_PAGE_SIZE);
-        });
-      } catch (err) {
-        dispatch({ type: HANDLE_ERROR });
-        setNotification({ show: true, message: err.message, type: "error" });
-        console.log(err.message);
-      }
-    }
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [SUBMIT_POST, collectionRef, user?.uid, following]);
-
-  const fetchMorePosts = async () => {
-    if (!collectionRef || !lastVisible || !hasMore) return;
-    setLoadingMore(true);
+  const fetchPosts = async (pageNum = 1, reset = false) => {
     try {
-      const q = query(
-        collectionRef,
-        orderBy("timestamp", "desc"),
-        startAfter(lastVisible),
-        limit(POSTS_PAGE_SIZE)
-      );
-      const docSnap = await getDocs(q);
-      const morePosts = docSnap.docs.map((item) => item.data());
-      if (morePosts.length > 0) {
+      setLoading(pageNum === 1);
+      setLoadingMore(pageNum > 1);
+
+      const response = await apiClient.getFeed(pageNum, 10);
+      const newPosts = response.posts;
+
+      if (reset || pageNum === 1) {
+        dispatch({ type: SUBMIT_POST, posts: newPosts });
+      } else {
         dispatch({
           type: SUBMIT_POST,
-          posts: [...state.posts, ...morePosts],
+          posts: [...state.posts, ...newPosts]
         });
-        setLastVisible(docSnap.docs[docSnap.docs.length - 1]);
-        setHasMore(docSnap.docs.length === POSTS_PAGE_SIZE);
-      } else {
-        setHasMore(false);
       }
+
+      setHasMore(newPosts.length === 10);
+      setPage(pageNum);
     } catch (err) {
+      dispatch({ type: HANDLE_ERROR });
       setNotification({ show: true, message: err.message, type: "error" });
-      setHasMore(false);
+      console.log(err.message);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
-    setLoadingMore(false);
+  };
+
+  const fetchMorePosts = async () => {
+    if (!hasMore || loadingMore) return;
+    await fetchPosts(page + 1);
   };
 
   useEffect(() => {
+    if (user) {
+      fetchPosts(1, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  useEffect(() => {
     if (!hasMore) return;
+    
     const observer = new window.IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !loadingMore) {
@@ -152,23 +112,32 @@ const Main = () => {
       },
       { threshold: 1 }
     );
-    if (scrollRef.current) {
-      observer.observe(scrollRef.current);
+    
+    const currentScrollRef = scrollRef.current;
+    if (currentScrollRef) {
+      observer.observe(currentScrollRef);
     }
+    
     return () => {
-      if (scrollRef.current) observer.unobserve(scrollRef.current);
+      if (currentScrollRef) {
+        observer.unobserve(currentScrollRef);
+      }
     };
-    // eslint-disable-next-line
-  }, [scrollRef, lastVisible, hasMore, loadingMore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, loadingMore]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+      // Store the actual File object, not base64
+      setImage(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    if (fileRef.current) {
+      fileRef.current.value = '';
     }
   };
 
@@ -185,10 +154,11 @@ const Main = () => {
           </button>
         </div>
       )}
+      
       <div className="post-form">
         <div className="user-profile">
           <img
-            src={user?.photoURL || "/default-avatar.png"}
+            src={userData?.profileImage || user?.photoURL || "/default-avatar.png"}
             alt="user"
             className="user-avatar"
           />
@@ -199,23 +169,43 @@ const Main = () => {
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
+        
+        {image && (
+          <div className="image-preview">
+            <img 
+              src={URL.createObjectURL(image)} 
+              alt="Preview" 
+              className="preview-image"
+            />
+            <button 
+              className="remove-image"
+              onClick={removeImage}
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        )}
+        
         <div className="post-actions">
           <input
             type="file"
             hidden
             ref={fileRef}
             onChange={handleImageUpload}
+            accept="image/*"
           />
           <button
             className="action-button"
             onClick={() => fileRef.current.click()}
+            type="button"
           >
             <FaImage /> Add Image
           </button>
-          <button className="action-button">
+          <button className="action-button" type="button">
             <FaVideo /> Live Video
           </button>
-          <button className="action-button">
+          <button className="action-button" type="button">
             <FaSmile /> Feeling/Activity
           </button>
           <button className="post-submit" onClick={handleSubmitPost}>
@@ -223,50 +213,55 @@ const Main = () => {
           </button>
         </div>
       </div>
+
       <div className="flex flex-col py-4 w-full">
         {state?.error ? (
           <div className="notification error">
             Something went wrong, refresh and try again...
           </div>
+        ) : loading ? (
+          <div>Loading posts...</div>
         ) : (
           <div>
             {(state?.posts?.length > 0
               ? state?.posts
               : [
                   {
-                    logo: "/default-avatar.png",
                     id: "demo1",
-                    uid: "demo-uid-1",
-                    name: "Demo User 1",
-                    email: "demo1@vibenet.com",
-                    image: "/assets/images/1.webp",
-                    text: "Welcome to VibeNet! This is a demo post.",
-                    timestamp: new Date().toUTCString(),
+                    user: {
+                      id: "demo-uid-1",
+                      name: "Demo User 1",
+                      profileImage: "/default-avatar.png"
+                    },
+                    content: "Welcome to VibeNet! This is a demo post.",
+                    imageUrl: null,
+                    createdAt: new Date().toISOString(),
+                    likesCount: 0,
+                    commentsCount: 0,
+                    isLiked: false
                   },
                   {
-                    logo: "/default-avatar.png",
                     id: "demo2",
-                    uid: "demo-uid-2",
-                    name: "Demo User 2",
-                    email: "demo2@vibenet.com",
-                    image: "/assets/images/2.webp",
-                    text: "Share your first post and connect with friends!",
-                    timestamp: new Date().toUTCString(),
+                    user: {
+                      id: "demo-uid-2",
+                      name: "Demo User 2",
+                      profileImage: "/default-avatar.png"
+                    },
+                    content: "Share your first post and connect with friends!",
+                    imageUrl: null,
+                    createdAt: new Date().toISOString(),
+                    likesCount: 0,
+                    commentsCount: 0,
+                    isLiked: false
                   },
                 ]
             ).map((post, index) => {
               return (
                 <PostCard
-                  key={index}
-                  logo={post?.logo}
-                  id={post?.documentId || post?.id}
-                  uid={post?.uid}
-                  name={post?.name}
-                  email={post?.email}
-                  image={post?.image}
-                  text={post?.text}
-                  timestamp={post?.timestamp}
-                ></PostCard>
+                  key={post.id || index}
+                  post={post}
+                  onPostUpdate={fetchPosts}
+                />
               );
             })}
             {loadingMore && <div>Loading more posts...</div>}
@@ -278,4 +273,5 @@ const Main = () => {
     </div>
   );
 };
+
 export default Main;

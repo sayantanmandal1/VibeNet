@@ -23,3 +23,53 @@
 .comment-text {
   color: var(--text-color);
 }
+/* Comment header with timestamp and delete */
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.comment-timestamp {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.comment-delete {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+.comment-delete:hover {
+  background-color: #fee2e2;
+}
+
+/* Comments list */
+.comments-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.comments-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
