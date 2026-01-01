@@ -112,11 +112,12 @@ const AppContext = ({ children }) => {
     initializeAuth();
   }, []);
 
-  useEffect(() => {
-    if (!loading && user) {
-      navigate("/home");
-    }
-  }, [loading, user, navigate]);
+  // Remove the automatic redirect - let route protection handle it
+  // useEffect(() => {
+  //   if (!loading && user) {
+  //     navigate("/home");
+  //   }
+  // }, [loading, user, navigate]);
 
   const value = {
     signInWithGoogle,

@@ -107,11 +107,15 @@ const NavBar = () => {
         <MenuBtn onClick={() => setClick(!click)}>Menu</MenuBtn>
         <MenuItem onClick={() => handleScroll("#home")}>Home</MenuItem>
         <MenuItem onClick={() => handleScroll(".about")}>About</MenuItem>
-        <MenuItem as={Link} to="/register">
-          Register
+        <MenuItem>
+          <Link to="/register" style={{ textDecoration: 'none', color: 'inherit' }}>
+            Register
+          </Link>
         </MenuItem>
-        <MenuItem as={Link} to="/login">
-          Login
+        <MenuItem>
+          <Link to="/login" style={{ textDecoration: 'none', color: 'inherit' }}>
+            Login
+          </Link>
         </MenuItem>
       </MenuItems>
     </NavContainer>

@@ -22,17 +22,10 @@ const Login = () => {
   };
 
   useEffect(() => {
-    setLoading(true);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        navigate("/");
-        setLoading(false);
-      } else {
-        setLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
+    // Remove automatic redirect - let users access login page
+    // Only redirect after successful login, not on page load
+    setLoading(false);
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -50,7 +43,7 @@ const Login = () => {
       try {
         await loginWithEmailAndPassword(values.email, values.password);
         showToast('Login successful! Redirecting...', 'success');
-        setTimeout(() => navigate("/"), 1200);
+        setTimeout(() => navigate("/home"), 1200);
       } catch (error) {
         setLoading(false);
         showToast("Login failed. Please check your credentials.");
@@ -117,7 +110,7 @@ const Login = () => {
                   try {
                     await signInWithGoogle();
                     showToast('Login successful! Redirecting...', 'success');
-                    setTimeout(() => navigate("/"), 1200);
+                    setTimeout(() => navigate("/home"), 1200);
                   } catch (error) {
                     setLoading(false);
                     showToast("Google login failed. Please try again.");
