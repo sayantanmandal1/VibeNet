@@ -4,21 +4,6 @@ import { socialImages } from '../../assets/images/social';
 import nature from "../../assets/images/nature.jpg";
 import './LeftSide.css';
 import { FaAppStore, FaLaptop, FaPhotoVideo, FaTiktok, FaFacebook, FaTwitter } from 'react-icons/fa';
-import styled from "styled-components";
-
-const SidebarContainer = styled.div`
-  background: ${({ theme }) => theme.card};
-  border-radius: 18px;
-  box-shadow: 0 2px 16px rgba(26,115,232,0.06);
-  padding: 24px 18px;
-  margin-top: 24px;
-  min-width: 260px;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 24px;
-`;
 
 const LeftSide = () => {
   const count = useRef(0);
@@ -53,7 +38,7 @@ const LeftSide = () => {
   ];
 
   return (
-    <SidebarContainer>
+    <div className="left-sidebar">
       <div className="profile-header">
         <img
           className="cover-image"
@@ -162,8 +147,10 @@ const LeftSide = () => {
           <span>Twitter</span>
         </button>
       </div>
-    </SidebarContainer>
+    </div>
   );
 };
+
+
 
 export default LeftSide;

@@ -111,7 +111,7 @@ const Main = () => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [SUBMIT_POST, collectionRef, user?.uid, following, HANDLE_ERROR]);
+  }, [SUBMIT_POST, collectionRef, user?.uid, following]);
 
   const fetchMorePosts = async () => {
     if (!collectionRef || !lastVisible || !hasMore) return;
@@ -159,7 +159,7 @@ const Main = () => {
       if (scrollRef.current) observer.unobserve(scrollRef.current);
     };
     // eslint-disable-next-line
-  }, [scrollRef, lastVisible, hasMore, loadingMore, HANDLE_ERROR]);
+  }, [scrollRef, lastVisible, hasMore, loadingMore]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
