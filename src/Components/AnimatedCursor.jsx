@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+
 export const AnimatedCursor = () => {
   const cursorOuterRef = useRef(null);
   const cursorInnerRef = useRef(null);
