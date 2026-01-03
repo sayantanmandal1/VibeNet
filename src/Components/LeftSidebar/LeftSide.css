@@ -39,3 +39,24 @@
     font-size: 1rem;
     color: var(--text-color);
 }
+/* User Suggestions Grid */
+.user-suggestions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+    .user-suggestions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-suggestions-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}

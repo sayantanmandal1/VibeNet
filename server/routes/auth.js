@@ -13,7 +13,10 @@ const router = express.Router();
 router.post('/register', [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 6 }),
-  body('name').trim().isLength({ min: 1 })
+  body('name').trim().isLength({ min: 1 }),
+  body('username').optional().trim().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_]+$/),
+  body('bio').optional().trim().isLength({ max: 500 }),
+  body('phoneNumber').optional().trim().isMobilePhone()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -21,7 +24,7 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password, name } = req.body;
+    const { email, password, name, username, bio, phoneNumber } = req.body;
 
     // Check if user already exists
     const existingUser = await pool.query(
@@ -33,6 +36,44 @@ router.post('/register', [
       return res.status(400).json({ error: 'User already exists with this email' });
     }
 
+    // Check username availability if provided
+    let finalUsername = null;
+    let defaultUsernameHash = null;
+
+    if (username) {
+      const usernameCheck = await pool.query(
+        'SELECT id FROM users WHERE username = $1',
+        [username.toLowerCase()]
+      );
+
+      if (usernameCheck.rows.length > 0) {
+        return res.status(400).json({ error: 'Username is already taken' });
+      }
+
+      finalUsername = username.toLowerCase();
+    } else {
+      // Generate default username hash
+      const tempId = uuidv4();
+      defaultUsernameHash = `user_${tempId.substring(0, 8)}_${Date.now().toString(36)}`;
+      
+      // Ensure uniqueness of default username hash
+      let isUnique = false;
+      let attempts = 0;
+      while (!isUnique && attempts < 5) {
+        const hashCheck = await pool.query(
+          'SELECT id FROM users WHERE default_username_hash = $1',
+          [defaultUsernameHash]
+        );
+        
+        if (hashCheck.rows.length === 0) {
+          isUnique = true;
+        } else {
+          attempts++;
+          defaultUsernameHash = `user_${tempId.substring(0, 8)}_${Date.now().toString(36)}_${attempts}`;
+        }
+      }
+    }
+
     // Hash password
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
@@ -40,12 +81,12 @@ router.post('/register', [
     // Generate unique UID for compatibility
     const uid = uuidv4();
 
-    // Create user
+    // Create user with comprehensive fields
     const result = await pool.query(
-      `INSERT INTO users (uid, email, password_hash, name, auth_provider) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id, uid, email, name, profile_image_url, auth_provider, created_at`,
-      [uid, email, passwordHash, name, 'email']
+      `INSERT INTO users (uid, email, password_hash, name, username, bio, phone_number, default_username_hash, auth_provider) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+       RETURNING id, uid, email, name, username, bio, phone_number, default_username_hash, profile_image_url, auth_provider, created_at`,
+      [uid, email, passwordHash, name, finalUsername, bio || null, phoneNumber || null, defaultUsernameHash, 'email']
     );
 
     const user = result.rows[0];
@@ -59,8 +100,13 @@ router.post('/register', [
         uid: user.uid,
         email: user.email,
         name: user.name,
+        username: user.username,
+        bio: user.bio,
+        phoneNumber: user.phone_number,
+        defaultUsernameHash: user.default_username_hash,
         profileImage: user.profile_image_url,
-        authProvider: user.auth_provider
+        authProvider: user.auth_provider,
+        createdAt: user.created_at
       }
     });
   } catch (error) {

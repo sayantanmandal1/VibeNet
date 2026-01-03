@@ -1,0 +1,167 @@
+.friend-request-button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.friend-request-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  height: 36px;
+}
+
+.friend-request-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.friend-request-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Add Friend Button */
+.friend-request-btn.add {
+  background-color: #0095f6;
+  color: white;
+}
+
+.friend-request-btn.add:hover:not(:disabled) {
+  background-color: #0084e6;
+}
+
+/* Request Sent Button */
+.friend-request-btn.sent {
+  background-color: #f0f0f0;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+/* Friends Button */
+.friend-request-btn.friends {
+  background-color: #e8f5e8;
+  color: #2d7d32;
+  border: 1px solid #c8e6c9;
+}
+
+/* Accept Button */
+.friend-request-btn.accept {
+  background-color: #4caf50;
+  color: white;
+}
+
+.friend-request-btn.accept:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+/* Decline Button */
+.friend-request-btn.decline {
+  background-color: #f44336;
+  color: white;
+}
+
+.friend-request-btn.decline:hover:not(:disabled) {
+  background-color: #da190b;
+}
+
+/* Remove Friend Button */
+.friend-request-btn.remove {
+  background-color: #fff;
+  color: #666;
+  border: 1px solid #ddd;
+  min-width: 36px;
+  width: 36px;
+  padding: 8px;
+}
+
+.friend-request-btn.remove:hover:not(:disabled) {
+  background-color: #f5f5f5;
+  color: #f44336;
+}
+
+/* Blocked Button */
+.friend-request-btn.blocked {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+/* Login Prompt Button */
+.friend-request-btn.login-prompt {
+  background-color: #0095f6;
+  color: white;
+}
+
+.friend-request-btn.login-prompt:hover {
+  background-color: #0084e6;
+}
+
+/* Friend Actions Container */
+.friend-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Error Message */
+.friend-request-error {
+  color: #f44336;
+  font-size: 12px;
+  text-align: center;
+  padding: 4px 8px;
+  background-color: #ffebee;
+  border-radius: 4px;
+  border: 1px solid #ffcdd2;
+}
+
+/* Loading State */
+.friend-request-btn:disabled {
+  position: relative;
+}
+
+.friend-request-btn:disabled::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .friend-request-btn {
+    font-size: 13px;
+    padding: 6px 12px;
+    min-width: 100px;
+    height: 32px;
+  }
+  
+  .friend-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .friend-request-btn.remove {
+    width: 32px;
+    min-width: 32px;
+    padding: 6px;
+  }
+}

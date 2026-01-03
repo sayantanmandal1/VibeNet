@@ -1,23 +1,59 @@
-import React from "react";
+import React, { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../AppContext/AppContext";
 import "./Navbar.css";
 
 const Navbar = () => {
+  const { user, userData, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const getProfileUrl = () => {
+    if (userData?.username) {
+      return `/profile/${userData.username}`;
+    }
+    return '/profile';
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-brand">
-          <a href="/" className="logo">
+          <Link to="/" className="logo">
             VibeNet
-          </a>
+          </Link>
         </div>
         <div className="nav-menu">
-          <a href="/home" className="nav-link">
+          <Link to="/home" className="nav-link">
             Home
-          </a>
-          <a href="/profile" className="nav-link">
-            Profile
-          </a>
-          <button className="nav-button">Logout</button>
+          </Link>
+          {user && (
+            <>
+              <Link to={getProfileUrl()} className="nav-link">
+                Profile
+              </Link>
+              <Link to="/friend-requests" className="nav-link">
+                Friend Requests
+              </Link>
+            </>
+          )}
+          {user ? (
+            <button className="nav-button" onClick={handleLogout}>
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" className="nav-button">
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </nav>

@@ -52,9 +52,20 @@ const AppContext = ({ children }) => {
     }
   };
 
-  const registerWithEmailAndPassword = async (name, email, password) => {
+  const registerWithEmailAndPassword = async (name, email, password, username, bio, phoneNumber) => {
     try {
-      const response = await apiClient.register({ name, email, password });
+      const registrationData = {
+        name,
+        email,
+        password
+      };
+
+      // Add optional fields if provided
+      if (username) registrationData.username = username;
+      if (bio) registrationData.bio = bio;
+      if (phoneNumber) registrationData.phoneNumber = phoneNumber;
+
+      const response = await apiClient.register(registrationData);
       
       // Store token and user data
       localStorage.setItem('authToken', response.token);
@@ -63,8 +74,7 @@ const AppContext = ({ children }) => {
       
       navigate('/home');
     } catch (err) {
-      alert(err.message);
-      console.log(err.message);
+      throw new Error(err.message || 'Registration failed');
     }
   };
 
@@ -88,6 +98,21 @@ const AppContext = ({ children }) => {
       setUser(null);
       setUserData(null);
       navigate('/');
+    }
+  };
+
+  const updateUserData = (newUserData) => {
+    setUserData(prev => ({ ...prev, ...newUserData }));
+    setUser(prev => ({ ...prev, ...newUserData }));
+  };
+
+  const refreshUserProfile = async () => {
+    try {
+      const response = await apiClient.getCurrentUserProfile();
+      setUserData(response.user);
+      setUser(response.user);
+    } catch (error) {
+      console.error('Failed to refresh user profile:', error);
     }
   };
 
@@ -124,7 +149,10 @@ const AppContext = ({ children }) => {
     loginWithEmailAndPassword,
     registerWithEmailAndPassword,
     sendPasswordToUser,
+    logout: signOutUser,
     signOutUser,
+    updateUserData,
+    refreshUserProfile,
     user,
     userData,
     loading,

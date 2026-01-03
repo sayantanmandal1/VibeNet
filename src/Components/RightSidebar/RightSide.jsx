@@ -1,20 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import waterslide from "../../assets/images/waterslide.jpg";
 import remove from "../../assets/images/delete.png";
 import { AuthContext } from "../AppContext/AppContext";
-import { Link } from "react-router-dom";
+import apiClient from "../../config/api";
 import "./RightSide.css";
-import {
-  collection,
-  doc,
-  query,
-  where,
-  getDocs,
-  arrayRemove,
-  updateDoc,
-  arrayUnion,
-} from "firebase/firestore";
-import { db } from "../firebase/firebase";
 import styled from "styled-components";
 
 const SidebarContainer = styled.div`
@@ -33,61 +23,70 @@ const SidebarContainer = styled.div`
 
 const RightSide = () => {
   const [input, setInput] = useState("");
-  const { user, userData } = useContext(AuthContext);
-  const friendList = userData?.friends;
-  const [items, setItems] = useState([{ id: 1, name: "Suggestion 1" }]);
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [friends, setFriends] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchSuggestions = async () => {
+    const fetchFriendsAndSuggestions = async () => {
       if (!user) return;
-      const usersSnap = await getDocs(collection(db, "users"));
-      const users = usersSnap.docs.map((doc) => doc.data());
-      const currentUser = users.find((u) => u.uid === user.uid);
-      const following = currentUser?.following || [];
-      const notFollowed = users.filter(
-        (u) => u.uid !== user.uid && !following.includes(u.uid)
-      );
-      setSuggestions(notFollowed);
+      
+      try {
+        setLoading(true);
+        
+        // Fetch friends list
+        const friendsResponse = await apiClient.getFriendsList();
+        setFriends(friendsResponse.friends || []);
+        
+        // Fetch user suggestions
+        const suggestionsResponse = await apiClient.getUserSuggestions(5);
+        setSuggestions(suggestionsResponse.suggestions || []);
+      } catch (error) {
+        console.error('Error fetching friends and suggestions:', error);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchSuggestions();
+
+    fetchFriendsAndSuggestions();
   }, [user]);
 
   const searchFriends = (data) => {
     return data.filter((item) =>
-      item["name"].toLowerCase().includes(input.toLowerCase())
+      item.name.toLowerCase().includes(input.toLowerCase())
     );
   };
 
-  const removeFriend = async (id, name, image) => {
-    const q = query(collection(db, "users"), where("uid", "==", user?.uid));
-    const getDoc = await getDocs(q);
-    const userDocumentId = getDoc.docs[0].id;
+  const removeFriend = async (friendId, friendName) => {
+    if (!window.confirm(`Are you sure you want to remove ${friendName} as a friend?`)) {
+      return;
+    }
 
-    await updateDoc(doc(db, "users", userDocumentId), {
-      friends: arrayRemove({ id: id, name: name, image: image }),
-    });
-  };
-
-  const handleRemove = (id) => {
-    setItems(items.filter((item) => item.id !== id));
-  };
-
-  const handleFollow = async (uid) => {
-    if (!user || !uid || user.uid === uid) return;
-    // Add to following for current user
-    const usersSnap = await getDocs(collection(db, "users"));
-    const userDocSnap = usersSnap.docs.find((d) => d.data().uid === user.uid);
-    const userRef = userDocSnap?.ref;
-    // Add to followers for suggested user
-    const suggestedDocSnap = usersSnap.docs.find((d) => d.data().uid === uid);
-    const suggestedRef = suggestedDocSnap?.ref;
     try {
-      await updateDoc(userRef, { following: arrayUnion(uid) });
-      await updateDoc(suggestedRef, { followers: arrayUnion(user.uid) });
-      setSuggestions((prev) => prev.filter((s) => s.uid !== uid));
-    } catch (err) {
-      alert(err.message);
+      await apiClient.removeFriend(friendId);
+      setFriends(prev => prev.filter(friend => friend.id !== friendId));
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      alert('Failed to remove friend. Please try again.');
+    }
+  };
+
+  const sendFriendRequest = async (userId) => {
+    try {
+      await apiClient.sendFriendRequest(userId);
+      setSuggestions(prev => prev.filter(s => s.id !== userId));
+      alert('Friend request sent!');
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      alert('Failed to send friend request. Please try again.');
+    }
+  };
+
+  const navigateToProfile = (username) => {
+    if (username) {
+      navigate(`/profile/${username}`);
     }
   };
 
@@ -102,84 +101,98 @@ const RightSide = () => {
         immensity of the great outdoors, to miraculous moments in your own
         backyard.
       </p>
-      <div className="mx-2 mt-10">
-        <p className="font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
-          Friends:{" "}
-        </p>
-        <input
-          className="border-2 border-gray-600 outline-none mt-4 p-2 rounded-md bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-400 transition duration-300"
-          name="input"
-          value={input}
-          type="text"
-          placeholder="Search friends"
-          onChange={(e) => setInput(e.target.value)}
-        />
-        {friendList?.length > 0 ? (
-          searchFriends(friendList)?.map((friend) => {
-            return (
+      
+      {user && (
+        <div className="mx-2 mt-10">
+          <p className="font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
+            Friends ({friends.length}):
+          </p>
+          <input
+            className="border-2 border-gray-600 outline-none mt-4 p-2 rounded-md bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-400 transition duration-300 w-full"
+            name="input"
+            value={input}
+            type="text"
+            placeholder="Search friends"
+            onChange={(e) => setInput(e.target.value)}
+          />
+          {loading ? (
+            <p className="mt-4 text-white text-sm">Loading friends...</p>
+          ) : friends.length > 0 ? (
+            searchFriends(friends).map((friend) => (
               <div
                 className="flex items-center justify-between bg-gray-600 hover:bg-gray-500 rounded-md p-2 my-2 transition duration-300 ease-in-out"
                 key={friend.id}
               >
-                <Link to={`/profile/${friend.id}`}>
-                  <div className="flex items-center cursor-pointer">
-                    <img
-                      src={friend?.image || "/default-avatar.jpg"}
-                      alt="User avatar"
-                      className="suggestion-avatar"
-                    />
-                    <p className="ml-4 font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
-                      {friend.name}
-                    </p>
-                  </div>
-                </Link>
-                <div className="mr-4">
+                <div 
+                  className="flex items-center cursor-pointer flex-1"
+                  onClick={() => navigateToProfile(friend.username)}
+                >
                   <img
-                    onClick={() =>
-                      removeFriend(friend.id, friend.name, friend.image)
-                    }
-                    className="cursor-pointer w-5 h-5"
+                    src={friend.profileImage || "/default-avatar.jpg"}
+                    alt="User avatar"
+                    className="suggestion-avatar w-8 h-8 rounded-full"
+                  />
+                  <p className="ml-4 font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
+                    {friend.name}
+                  </p>
+                </div>
+                <div className="mr-2">
+                  <img
+                    onClick={() => removeFriend(friend.id, friend.name)}
+                    className="cursor-pointer w-5 h-5 hover:opacity-70"
                     src={remove}
-                    alt="deleteFriend"
+                    alt="removeFriend"
                   />
                 </div>
               </div>
-            );
-          })
-        ) : (
-          <p className="mt-10 font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
-            Add friends to check their profile
-          </p>
-        )}
-      </div>
-      <div className="mx-2 mt-10">
-        <p className="font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
-          Friend Suggestions:
-        </p>
-        <div>
-          {suggestions.length === 0 && <p className="text-white">No suggestions</p>}
-          {suggestions.map((s) => (
-            <div key={s.uid} className="flex items-center my-2">
-              <img src={s.image || "/default-avatar.png"} alt="avatar" className="suggestion-avatar" />
-              <span className="text-white ml-2">{s.name}</span>
-              <button
-                className="follow-button ml-auto"
-                onClick={() => handleFollow(s.uid)}
-              >
-                Follow
-              </button>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="mt-4 font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
+              No friends yet. Send friend requests to connect!
+            </p>
+          )}
         </div>
-      </div>
-      <div className="suggestion-actions">
-        <button
-          className="remove-button"
-          onClick={() => handleRemove(1)}
-        >
-          Remove
-        </button>
-      </div>
+      )}
+      
+      {user && (
+        <div className="mx-2 mt-6">
+          <p className="font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
+            Friend Suggestions:
+          </p>
+          <div className="mt-4">
+            {loading ? (
+              <p className="text-white text-sm">Loading suggestions...</p>
+            ) : suggestions.length === 0 ? (
+              <p className="text-white text-sm opacity-70">No suggestions available</p>
+            ) : (
+              suggestions.map((suggestion) => (
+                <div key={suggestion.id} className="flex items-center justify-between bg-gray-600 hover:bg-gray-500 rounded-md p-2 my-2 transition duration-300">
+                  <div 
+                    className="flex items-center cursor-pointer flex-1"
+                    onClick={() => navigateToProfile(suggestion.username)}
+                  >
+                    <img 
+                      src={suggestion.profileImage || "/default-avatar.png"} 
+                      alt="avatar" 
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <div className="ml-3">
+                      <p className="text-white text-sm font-medium">{suggestion.name}</p>
+                      <p className="text-gray-300 text-xs">@{suggestion.username}</p>
+                    </div>
+                  </div>
+                  <button
+                    className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded-md transition duration-200"
+                    onClick={() => sendFriendRequest(suggestion.id)}
+                  >
+                    Add Friend
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </SidebarContainer>
   );
 };

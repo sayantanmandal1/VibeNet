@@ -139,6 +139,9 @@ const Register = () => {
           <Link to="/login" className="auth-link">
             Already have an account? Sign in
           </Link>
+          <Link to="/register-wizard" className="auth-link">
+            Try our enhanced registration wizard
+          </Link>
         </div>
       </div>
     </>

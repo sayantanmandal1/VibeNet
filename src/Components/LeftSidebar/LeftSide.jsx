@@ -1,18 +1,42 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../AppContext/AppContext";
 import { socialImages } from '../../assets/images/social';
 import nature from "../../assets/images/nature.jpg";
 import './LeftSide.css';
 import { FaAppStore, FaLaptop, FaPhotoVideo, FaTiktok, FaFacebook, FaTwitter } from 'react-icons/fa';
+import UserCard from '../UserCard/UserCard';
+import apiClient from '../../config/api';
 
 const LeftSide = () => {
   const count = useRef(0);
   const { user, userData } = useContext(AuthContext);
+  const [userSuggestions, setUserSuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const userProfile = {
     avatar: '/path-to-default-avatar.jpg', // Add default avatar path
     job: 'Software Developer', // Add default job title
   };
+
+  // Fetch user suggestions
+  useEffect(() => {
+    const fetchUserSuggestions = async () => {
+      if (!user) return; // Only fetch if user is logged in
+      
+      try {
+        setLoading(true);
+        const response = await apiClient.getUserSuggestions(10);
+        setUserSuggestions(response.suggestions || []);
+      } catch (error) {
+        console.error('Error fetching user suggestions:', error);
+        setUserSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserSuggestions();
+  }, [user]);
 
   useEffect(() => {
     let countAds = 0;
@@ -111,6 +135,26 @@ const LeftSide = () => {
           </p>
         </div>
       </div>
+
+      {/* User Suggestions Section */}
+      {user && (
+        <div className="ml-2 mt-4 mb-4">
+          <p className="font-roboto font-bold text-lg no-underline tracking-normal leading-none py-2 text-white">
+            Suggested Users
+          </p>
+          {loading ? (
+            <div className="text-white text-sm">Loading suggestions...</div>
+          ) : userSuggestions.length > 0 ? (
+            <div className="user-suggestions-grid">
+              {userSuggestions.slice(0, 6).map((suggestedUser) => (
+                <UserCard key={suggestedUser.id} user={suggestedUser} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-white text-sm opacity-70">No suggestions available</div>
+          )}
+        </div>
+      )}
       <div className="flex flex-col justify-center items-center pt-4">
         {/* You can add more content here if needed */}
       </div>

@@ -31,6 +31,27 @@ class ApiClient {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        // Handle specific error cases
+        if (response.status === 401) {
+          // Token expired or invalid - clear auth and redirect to login
+          localStorage.removeItem('authToken');
+          window.location.href = '/login';
+          throw new Error('Authentication required. Please log in again.');
+        }
+        
+        if (response.status === 404) {
+          throw new Error(errorData.error || 'Resource not found');
+        }
+        
+        if (response.status === 403) {
+          throw new Error(errorData.error || 'Access denied');
+        }
+        
+        if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
@@ -71,6 +92,10 @@ class ApiClient {
 
   async getCurrentUser() {
     return this.request('/auth/me');
+  }
+
+  async getCurrentUserProfile() {
+    return this.request('/users/profile');
   }
 
   // Posts methods
@@ -130,10 +155,24 @@ class ApiClient {
     return this.request(`/users/${userId}`);
   }
 
+  async getUserProfileByUsername(username) {
+    return this.request(`/users/profile/${username}`);
+  }
+
+  async checkUsernameAvailability(username) {
+    return this.request('/users/check-username', {
+      method: 'POST',
+      body: JSON.stringify({ username }),
+    });
+  }
+
   async updateProfile(profileData) {
     const formData = new FormData();
     
     if (profileData.name) formData.append('name', profileData.name);
+    if (profileData.username) formData.append('username', profileData.username);
+    if (profileData.email) formData.append('email', profileData.email);
+    if (profileData.phoneNumber) formData.append('phoneNumber', profileData.phoneNumber);
     if (profileData.bio) formData.append('bio', profileData.bio);
     if (profileData.profileImage) formData.append('profileImage', profileData.profileImage);
 
@@ -150,11 +189,48 @@ class ApiClient {
   }
 
   async getUserSuggestions(limit = 10) {
-    return this.request(`/users/suggestions/list?limit=${limit}`);
+    return this.request(`/users/suggestions?limit=${limit}`);
   }
 
   async searchUsers(query, limit = 20) {
     return this.request(`/users/search/${encodeURIComponent(query)}?limit=${limit}`);
+  }
+
+  // Friends methods
+  async sendFriendRequest(userId) {
+    return this.request(`/friends/request/${userId}`, {
+      method: 'POST',
+    });
+  }
+
+  async acceptFriendRequest(requestId) {
+    return this.request(`/friends/accept/${requestId}`, {
+      method: 'PUT',
+    });
+  }
+
+  async declineFriendRequest(requestId) {
+    return this.request(`/friends/decline/${requestId}`, {
+      method: 'PUT',
+    });
+  }
+
+  async removeFriend(friendId) {
+    return this.request(`/friends/${friendId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getFriendRequests() {
+    return this.request('/friends/requests');
+  }
+
+  async getFriendsList() {
+    return this.request('/friends/list');
+  }
+
+  async getFriendshipStatus(userId) {
+    return this.request(`/friends/status/${userId}`);
   }
 }
 

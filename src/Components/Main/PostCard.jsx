@@ -1,13 +1,14 @@
 import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
 import avatar from "../../assets/images/avatar.jpg";
 import like from "../../assets/images/like.png";
 import comment from "../../assets/images/comment.png";
 import remove from "../../assets/images/delete.png";
-import addFriend from "../../assets/images/add-friend.png";
 import { AuthContext } from "../AppContext/AppContext";
 import apiClient from "../../config/api";
 import CommentSection from "./CommentSection";
+import FriendRequestButton from "../Pages/FriendRequestButton";
 
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '';
@@ -17,10 +18,10 @@ const formatTimestamp = (timestamp) => {
 
 const PostCard = ({ post, onPostUpdate }) => {
   const { user, userData } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likesCount);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleOpen = (e) => {
@@ -70,25 +71,14 @@ const PostCard = ({ post, onPostUpdate }) => {
     }
   };
 
-  const handleFollow = async () => {
-    if (loading) return;
-    if (!user || !post.user.id || user.id === post.user.id) return;
-    
-    setLoading(true);
-    try {
-      const response = await apiClient.followUser(post.user.id);
-      setIsFollowing(response.isFollowing);
-    } catch (err) {
-      alert(err.message);
-      console.log(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Remove unused functions - these are handled by FriendRequestButton component
+  // const handleFollow = async () => { ... }
+  // const addUser = async () => { ... }
 
-  const addUser = async () => {
-    // This would be for friend requests - implement if needed
-    alert("Friend request feature coming soon!");
+  const navigateToProfile = () => {
+    if (post.user.username) {
+      navigate(`/profile/${post.user.username}`);
+    }
   };
 
   const isOwnPost = user?.id === post.user.id || userData?.id === post.user.id;
@@ -99,10 +89,14 @@ const PostCard = ({ post, onPostUpdate }) => {
         <img
           src={post.user.profileImage || avatar}
           alt="avatar"
-          className="post-avatar"
+          className="post-avatar cursor-pointer"
+          onClick={navigateToProfile}
         />
         <div className="flex flex-col ml-4">
-          <p className="py-2 font-roboto font-medium text-sm text-gray-700 no-underline tracking-normal leading-none">
+          <p 
+            className="py-2 font-roboto font-medium text-sm text-gray-700 no-underline tracking-normal leading-none cursor-pointer hover:underline"
+            onClick={navigateToProfile}
+          >
             {post.user.name}
           </p>
           <p className="font-roboto font-medium text-sm text-gray-700 no-underline tracking-normal leading-none">
@@ -110,14 +104,15 @@ const PostCard = ({ post, onPostUpdate }) => {
           </p>
         </div>
         {!isOwnPost && (
-          <div
-            onClick={addUser}
-            className="w-full flex justify-end cursor-pointer mr-10"
-          >
-            <img
-              className="hover:bg-blue-100 rounded-xl p-2"
-              src={addFriend}
-              alt="addFriend"
+          <div className="w-full flex justify-end mr-4">
+            <FriendRequestButton 
+              targetUserId={post.user.id}
+              onStatusChange={() => {
+                // Optionally refresh posts when friendship status changes
+                if (onPostUpdate) {
+                  onPostUpdate(1, true);
+                }
+              }}
             />
           </div>
         )}
@@ -162,16 +157,6 @@ const PostCard = ({ post, onPostUpdate }) => {
           >
             <img className="h-8 mr-2" src={remove} alt="delete" />
             Delete
-          </button>
-        )}
-        
-        {!isOwnPost && (
-          <button
-            className="post-action-button ml-2"
-            onClick={handleFollow}
-            disabled={loading}
-          >
-            {isFollowing ? "Unfollow" : "Follow"}
           </button>
         )}
       </div>

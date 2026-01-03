@@ -223,47 +223,23 @@ const Main = () => {
           <div>Loading posts...</div>
         ) : (
           <div>
-            {(state?.posts?.length > 0
-              ? state?.posts
-              : [
-                  {
-                    id: "demo1",
-                    user: {
-                      id: "demo-uid-1",
-                      name: "Demo User 1",
-                      profileImage: "/default-avatar.png"
-                    },
-                    content: "Welcome to VibeNet! This is a demo post.",
-                    imageUrl: null,
-                    createdAt: new Date().toISOString(),
-                    likesCount: 0,
-                    commentsCount: 0,
-                    isLiked: false
-                  },
-                  {
-                    id: "demo2",
-                    user: {
-                      id: "demo-uid-2",
-                      name: "Demo User 2",
-                      profileImage: "/default-avatar.png"
-                    },
-                    content: "Share your first post and connect with friends!",
-                    imageUrl: null,
-                    createdAt: new Date().toISOString(),
-                    likesCount: 0,
-                    commentsCount: 0,
-                    isLiked: false
-                  },
-                ]
-            ).map((post, index) => {
-              return (
+            {state?.posts?.length > 0 ? (
+              state.posts.map((post, index) => (
                 <PostCard
                   key={post.id || index}
                   post={post}
                   onPostUpdate={fetchPosts}
                 />
-              );
-            })}
+              ))
+            ) : (
+              <div className="empty-feed">
+                <div className="empty-feed-content">
+                  <h3>Welcome to VibeNet!</h3>
+                  <p>Your feed will show posts from your friends.</p>
+                  <p>Start by adding friends to see their posts here.</p>
+                </div>
+              </div>
+            )}
             {loadingMore && <div>Loading more posts...</div>}
             {!hasMore && state?.posts?.length > 0 && <div>No more posts.</div>}
           </div>

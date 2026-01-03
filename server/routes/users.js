@@ -4,11 +4,53 @@ const path = require('path');
 const fs = require('fs');
 const { body, validationResult } = require('express-validator');
 const pool = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { 
+  authenticateToken, 
+  optionalAuth, 
+  checkProfileAccess, 
+  allowAnonymous 
+} = require('../middleware/auth');
 
 const router = express.Router();
 
-// Configure multer for profile image uploads
+// Check username availability
+router.post('/check-username', [
+  body('username').trim().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_]+$/),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        available: false,
+        error: 'Username must be 3-30 characters and contain only letters, numbers, and underscores'
+      });
+    }
+
+    const { username } = req.body;
+
+    // Check if username exists
+    const result = await pool.query(
+      'SELECT id FROM users WHERE username = $1',
+      [username.toLowerCase()]
+    );
+
+    const available = result.rows.length === 0;
+
+    res.json({
+      available,
+      username: username.toLowerCase(),
+      message: available ? 'Username is available' : 'Username is already taken'
+    });
+  } catch (error) {
+    console.error('Check username error:', error);
+    res.status(500).json({ 
+      available: false,
+      error: 'Internal server error' 
+    });
+  }
+});
+
+// Configure multer for profile image uploads with enhanced validation
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(process.env.UPLOAD_DIR || 'uploads', 'profiles');
@@ -18,22 +60,195 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
+    // Generate unique filename with user ID and timestamp
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+    const userId = req.user?.id || 'temp';
+    const extension = path.extname(file.originalname).toLowerCase();
+    cb(null, `profile-${userId}-${uniqueSuffix}${extension}`);
   }
 });
+
+// Enhanced file filter with better validation
+const fileFilter = (req, file, cb) => {
+  // Check file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'), false);
+  }
+
+  // Check file extension
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+  if (!allowedExtensions.includes(fileExtension)) {
+    return cb(new Error('Invalid file extension. Only .jpg, .jpeg, .png, and .webp files are allowed.'), false);
+  }
+
+  cb(null, true);
+};
 
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB for profile images
+    fileSize: 2 * 1024 * 1024, // 2MB limit for profile images
+    files: 1 // Only allow one file at a time
   },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'), false);
+  fileFilter: fileFilter
+});
+
+// Get user profile by username (public endpoint with privacy controls)
+router.get('/profile/:username', optionalAuth, allowAnonymous, checkProfileAccess, async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { profileUserId, currentUserId, isOwnProfile, canViewPosts, isFriend, friendRequestStatus } = req.profileAccess;
+
+    // Get user profile by username
+    const userResult = await pool.query(`
+      SELECT 
+        u.id,
+        u.uid,
+        u.name,
+        u.bio,
+        u.profile_image_url,
+        u.username,
+        u.created_at,
+        COUNT(DISTINCT p.id) as posts_count
+      FROM users u
+      LEFT JOIN posts p ON u.id = p.user_id
+      WHERE u.id = $1
+      GROUP BY u.id, u.uid, u.name, u.bio, u.profile_image_url, u.username, u.created_at
+    `, [profileUserId]);
+
+    const user = userResult.rows[0];
+
+    // Get friends count (accepted friends only)
+    const friendsCountResult = await pool.query(`
+      SELECT COUNT(*) as count
+      FROM friends 
+      WHERE (user_id = $1 OR friend_id = $1) AND status = 'accepted'
+    `, [profileUserId]);
+    const friendsCount = parseInt(friendsCountResult.rows[0].count);
+
+    // Get posts if user can view them
+    let posts = [];
+    if (canViewPosts) {
+      const postsResult = await pool.query(`
+        SELECT 
+          p.id,
+          p.content,
+          p.image_url,
+          p.created_at,
+          COUNT(DISTINCT l.id) as likes_count,
+          COUNT(DISTINCT c.id) as comments_count,
+          CASE WHEN ul.id IS NOT NULL THEN true ELSE false END as is_liked
+        FROM posts p
+        LEFT JOIN likes l ON p.id = l.post_id
+        LEFT JOIN comments c ON p.id = c.post_id
+        LEFT JOIN likes ul ON p.id = ul.post_id AND ul.user_id = $2
+        WHERE p.user_id = $1
+        GROUP BY p.id, p.content, p.image_url, p.created_at, ul.id
+        ORDER BY p.created_at DESC
+      `, [profileUserId, currentUserId]);
+
+      posts = postsResult.rows.map(post => ({
+        id: post.id,
+        content: post.content,
+        imageUrl: post.image_url,
+        createdAt: post.created_at,
+        likesCount: parseInt(post.likes_count),
+        commentsCount: parseInt(post.comments_count),
+        isLiked: post.is_liked
+      }));
     }
+
+    // Prepare response based on authentication status
+    const response = {
+      user: {
+        id: user.id,
+        uid: user.uid,
+        username: user.username,
+        name: user.name,
+        bio: user.bio,
+        profileImage: user.profile_image_url,
+        friendsCount: friendsCount,
+        postsCount: parseInt(user.posts_count),
+        joinedAt: user.created_at
+      },
+      posts,
+      isFriend,
+      friendRequestStatus,
+      canViewPosts,
+      isOwnProfile
+    };
+
+    // Add anonymous access information if not authenticated
+    if (req.isAnonymous) {
+      response.anonymousAccess = {
+        message: 'Login to see posts and interact with this profile',
+        canViewPosts: false,
+        requiresLogin: true
+      };
+    }
+
+    res.json(response);
+  } catch (error) {
+    console.error('Get profile by username error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user suggestions (users not friends with current user)
+router.get('/suggestions', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.name,
+        u.username,
+        u.bio,
+        u.profile_image_url,
+        u.created_at,
+        COUNT(DISTINCT p.id) as posts_count,
+        (
+          SELECT COUNT(*)
+          FROM friends f_count
+          WHERE (f_count.user_id = u.id OR f_count.friend_id = u.id)
+          AND f_count.status = 'accepted'
+        ) as friends_count
+      FROM users u
+      LEFT JOIN posts p ON u.id = p.user_id
+      WHERE u.id != $1 
+        AND u.id NOT IN (
+          SELECT CASE 
+            WHEN f.user_id = $1 THEN f.friend_id 
+            ELSE f.user_id 
+          END
+          FROM friends f 
+          WHERE (f.user_id = $1 OR f.friend_id = $1) 
+          AND f.status IN ('accepted', 'pending')
+        )
+      GROUP BY u.id, u.name, u.username, u.bio, u.profile_image_url, u.created_at
+      ORDER BY friends_count DESC, posts_count DESC, u.created_at DESC
+      LIMIT $2
+    `, [userId, limit]);
+
+    const suggestions = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      username: row.username,
+      bio: row.bio,
+      profileImage: row.profile_image_url,
+      friendsCount: parseInt(row.friends_count),
+      postsCount: parseInt(row.posts_count),
+      joinedAt: row.created_at
+    }));
+
+    res.json({ suggestions });
+  } catch (error) {
+    console.error('Get user suggestions error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -96,7 +311,10 @@ router.get('/:userId', authenticateToken, async (req, res) => {
 // Update user profile
 router.put('/profile', authenticateToken, upload.single('profileImage'), [
   body('name').optional().trim().isLength({ min: 1 }),
-  body('bio').optional().trim()
+  body('bio').optional().trim().isLength({ max: 500 }),
+  body('username').optional().trim().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_]+$/),
+  body('email').optional().isEmail().normalizeEmail(),
+  body('phoneNumber').optional().trim().isMobilePhone()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -105,8 +323,41 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
     }
 
     const userId = req.user.id;
-    const { name, bio } = req.body;
+    const { name, bio, username, email, phoneNumber } = req.body;
     const profileImageUrl = req.file ? `/uploads/profiles/${req.file.filename}` : undefined;
+
+    // Check username availability if provided and different from current
+    if (username) {
+      const currentUserResult = await pool.query(
+        'SELECT username FROM users WHERE id = $1',
+        [userId]
+      );
+      
+      const currentUsername = currentUserResult.rows[0].username;
+      
+      if (username.toLowerCase() !== currentUsername) {
+        const usernameCheck = await pool.query(
+          'SELECT id FROM users WHERE username = $1 AND id != $2',
+          [username.toLowerCase(), userId]
+        );
+
+        if (usernameCheck.rows.length > 0) {
+          return res.status(400).json({ error: 'Username is already taken' });
+        }
+      }
+    }
+
+    // Check email availability if provided and different from current
+    if (email) {
+      const emailCheck = await pool.query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [email, userId]
+      );
+
+      if (emailCheck.rows.length > 0) {
+        return res.status(400).json({ error: 'Email is already taken' });
+      }
+    }
 
     // Build update query dynamically
     const updates = [];
@@ -121,6 +372,21 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
     if (bio !== undefined) {
       updates.push(`bio = $${paramCount++}`);
       values.push(bio);
+    }
+
+    if (username !== undefined) {
+      updates.push(`username = $${paramCount++}`);
+      values.push(username.toLowerCase());
+    }
+
+    if (email !== undefined) {
+      updates.push(`email = $${paramCount++}`);
+      values.push(email);
+    }
+
+    if (phoneNumber !== undefined) {
+      updates.push(`phone_number = $${paramCount++}`);
+      values.push(phoneNumber);
     }
 
     if (profileImageUrl !== undefined) {
@@ -153,7 +419,7 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
       UPDATE users 
       SET ${updates.join(', ')} 
       WHERE id = $${paramCount}
-      RETURNING id, uid, name, bio, profile_image_url, auth_provider
+      RETURNING id, uid, name, bio, username, email, phone_number, profile_image_url, auth_provider
     `;
 
     const result = await pool.query(query, values);
@@ -166,6 +432,9 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
         uid: user.uid,
         name: user.name,
         bio: user.bio,
+        username: user.username,
+        email: user.email,
+        phoneNumber: user.phone_number,
         profileImage: user.profile_image_url,
         authProvider: user.auth_provider
       }
@@ -227,7 +496,7 @@ router.post('/:userId/follow', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user suggestions (users not followed)
+// Get user suggestions (users not followed) - Legacy endpoint for backward compatibility
 router.get('/suggestions/list', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;

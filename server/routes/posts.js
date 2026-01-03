@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { body, validationResult } = require('express-validator');
 const pool = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, checkFriendAccess } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -83,7 +83,7 @@ router.post('/', authenticateToken, upload.single('image'), [
   }
 });
 
-// Get posts feed (paginated)
+// Get posts feed (paginated) - Friend-based filtering
 router.get('/feed', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -91,7 +91,7 @@ router.get('/feed', authenticateToken, async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
 
-    // Get posts from followed users + own posts
+    // Get posts from friends + own posts (friend-based privacy)
     const result = await pool.query(`
       SELECT 
         p.id,
@@ -100,6 +100,7 @@ router.get('/feed', authenticateToken, async (req, res) => {
         p.created_at,
         u.id as user_id,
         u.name as user_name,
+        u.username as user_username,
         u.profile_image_url as user_profile_image,
         COUNT(DISTINCT l.id) as likes_count,
         COUNT(DISTINCT c.id) as comments_count,
@@ -111,9 +112,16 @@ router.get('/feed', authenticateToken, async (req, res) => {
       LEFT JOIN likes ul ON p.id = ul.post_id AND ul.user_id = $1
       WHERE p.user_id = $1 
          OR p.user_id IN (
-           SELECT following_id FROM followers WHERE follower_id = $1
+           SELECT DISTINCT 
+             CASE 
+               WHEN f.user_id = $1 THEN f.friend_id 
+               ELSE f.user_id 
+             END as friend_id
+           FROM friends f
+           WHERE (f.user_id = $1 OR f.friend_id = $1) 
+           AND f.status = 'accepted'
          )
-      GROUP BY p.id, p.content, p.image_url, p.created_at, u.id, u.name, u.profile_image_url, ul.id
+      GROUP BY p.id, p.content, p.image_url, p.created_at, u.id, u.name, u.username, u.profile_image_url, ul.id
       ORDER BY p.created_at DESC
       LIMIT $2 OFFSET $3
     `, [userId, limit, offset]);
@@ -126,6 +134,7 @@ router.get('/feed', authenticateToken, async (req, res) => {
       user: {
         id: row.user_id,
         name: row.user_name,
+        username: row.user_username,
         profileImage: row.user_profile_image
       },
       likesCount: parseInt(row.likes_count),
@@ -140,12 +149,39 @@ router.get('/feed', authenticateToken, async (req, res) => {
   }
 });
 
-// Get single post
-router.get('/:postId', authenticateToken, async (req, res) => {
+// Get single post - with enhanced friend-based privacy
+router.get('/:postId', authenticateToken, checkFriendAccess, async (req, res) => {
   try {
     const { postId } = req.params;
     const userId = req.user.id;
 
+    // First get the post and its owner
+    const postOwnerResult = await pool.query(
+      'SELECT user_id FROM posts WHERE id = $1',
+      [postId]
+    );
+
+    if (postOwnerResult.rows.length === 0) {
+      return res.status(404).json({ 
+        error: 'Post not found',
+        message: 'The requested post does not exist or has been removed'
+      });
+    }
+
+    const postOwnerId = postOwnerResult.rows[0].user_id;
+
+    // Check if user can access this post
+    const { canAccess } = await req.checkFriendship(postOwnerId);
+    
+    if (!canAccess) {
+      return res.status(403).json({ 
+        error: 'Access denied',
+        message: 'This post is only visible to friends',
+        requiresFriendship: true
+      });
+    }
+
+    // Get the full post details
     const result = await pool.query(`
       SELECT 
         p.id,
@@ -154,6 +190,7 @@ router.get('/:postId', authenticateToken, async (req, res) => {
         p.created_at,
         u.id as user_id,
         u.name as user_name,
+        u.username as user_username,
         u.profile_image_url as user_profile_image,
         COUNT(DISTINCT l.id) as likes_count,
         COUNT(DISTINCT c.id) as comments_count,
@@ -164,12 +201,8 @@ router.get('/:postId', authenticateToken, async (req, res) => {
       LEFT JOIN comments c ON p.id = c.post_id
       LEFT JOIN likes ul ON p.id = ul.post_id AND ul.user_id = $1
       WHERE p.id = $2
-      GROUP BY p.id, p.content, p.image_url, p.created_at, u.id, u.name, u.profile_image_url, ul.id
+      GROUP BY p.id, p.content, p.image_url, p.created_at, u.id, u.name, u.username, u.profile_image_url, ul.id
     `, [userId, postId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
 
     const row = result.rows[0];
     const post = {
@@ -180,6 +213,7 @@ router.get('/:postId', authenticateToken, async (req, res) => {
       user: {
         id: row.user_id,
         name: row.user_name,
+        username: row.user_username,
         profileImage: row.user_profile_image
       },
       likesCount: parseInt(row.likes_count),
@@ -190,6 +224,81 @@ router.get('/:postId', authenticateToken, async (req, res) => {
     res.json({ post });
   } catch (error) {
     console.error('Get post error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get posts by user (for profile pages) - with enhanced friend-based privacy
+router.get('/user/:userId', authenticateToken, checkFriendAccess, async (req, res) => {
+  try {
+    const { userId: profileUserId } = req.params;
+    const currentUserId = req.user.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const offset = (page - 1) * limit;
+
+    // Check if current user can view this user's posts
+    const { canAccess, isFriend } = await req.checkFriendship(profileUserId);
+
+    if (!canAccess) {
+      return res.json({ 
+        posts: [], 
+        canViewPosts: false,
+        isFriend: false,
+        message: 'Posts are only visible to friends. Send a friend request to view this user\'s posts.',
+        restrictedContent: true
+      });
+    }
+
+    const result = await pool.query(`
+      SELECT 
+        p.id,
+        p.content,
+        p.image_url,
+        p.created_at,
+        u.id as user_id,
+        u.name as user_name,
+        u.username as user_username,
+        u.profile_image_url as user_profile_image,
+        COUNT(DISTINCT l.id) as likes_count,
+        COUNT(DISTINCT c.id) as comments_count,
+        CASE WHEN ul.id IS NOT NULL THEN true ELSE false END as is_liked
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      LEFT JOIN likes l ON p.id = l.post_id
+      LEFT JOIN comments c ON p.id = c.post_id
+      LEFT JOIN likes ul ON p.id = ul.post_id AND ul.user_id = $1
+      WHERE p.user_id = $2
+      GROUP BY p.id, p.content, p.image_url, p.created_at, u.id, u.name, u.username, u.profile_image_url, ul.id
+      ORDER BY p.created_at DESC
+      LIMIT $3 OFFSET $4
+    `, [currentUserId, profileUserId, limit, offset]);
+
+    const posts = result.rows.map(row => ({
+      id: row.id,
+      content: row.content,
+      imageUrl: row.image_url,
+      createdAt: row.created_at,
+      user: {
+        id: row.user_id,
+        name: row.user_name,
+        username: row.user_username,
+        profileImage: row.user_profile_image
+      },
+      likesCount: parseInt(row.likes_count),
+      commentsCount: parseInt(row.comments_count),
+      isLiked: row.is_liked
+    }));
+
+    res.json({ 
+      posts, 
+      canViewPosts: true,
+      isFriend,
+      totalPosts: posts.length,
+      isOwnProfile: currentUserId === profileUserId
+    });
+  } catch (error) {
+    console.error('Get user posts error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
