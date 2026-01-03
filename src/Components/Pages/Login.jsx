@@ -8,6 +8,7 @@ import { AuthContext } from "../AppContext/AppContext";
 import Button from "./Button";
 import Toast from "./Toast";
 import BackButton from "../Common/BackButton";
+import PasswordInput from "../Common/PasswordInput";
 import './Auth.css';
 import './Pages.css';
 import './InputOverrides.css';
@@ -94,12 +95,11 @@ const Login = () => {
                 />
               </div>
               <div className="form-group">
-                <input
-                  type="password"
-                  className="form-input"
+                <PasswordInput
                   placeholder="Password"
                   name="password"
-                  {...formik.getFieldProps('password')}
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
                   autoComplete="current-password"
                 />
               </div>

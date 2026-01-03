@@ -5,6 +5,7 @@ import UsernameSelector from './UsernameSelector';
 import Button from './Button';
 import Toast from './Toast';
 import BackButton from '../Common/BackButton';
+import PasswordInput from '../Common/PasswordInput';
 import { countries } from '../../utils/countries';
 import './RegistrationWizard.css';
 import './InputOverrides.css';
@@ -277,25 +278,25 @@ const RegistrationWizard = () => {
       </div>
 
       <div className="form-group">
-        <input
-          type="password"
-          className={`form-input ${errors.password ? 'error' : ''}`}
+        <PasswordInput
           placeholder="Password *"
+          name="password"
           value={formData.password}
           onChange={(e) => updateFormData('password', e.target.value)}
           autoComplete="new-password"
+          className={errors.password ? 'error' : ''}
         />
         {errors.password && <span className="error-text">{errors.password}</span>}
       </div>
 
       <div className="form-group">
-        <input
-          type="password"
-          className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+        <PasswordInput
           placeholder="Confirm Password *"
+          name="confirmPassword"
           value={formData.confirmPassword}
           onChange={(e) => updateFormData('confirmPassword', e.target.value)}
           autoComplete="new-password"
+          className={errors.confirmPassword ? 'error' : ''}
         />
         {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
       </div>

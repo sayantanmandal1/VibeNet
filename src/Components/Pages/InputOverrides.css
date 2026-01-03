@@ -65,6 +65,21 @@ textarea:focus {
   color: #000000 !important;
 }
 
+/* Password input specific overrides */
+.password-input-container input,
+.password-input-container .form-input,
+.password-input-container .password-input {
+  color: #000000 !important;
+}
+
+/* Registration wizard password input overrides */
+.wizard-step .password-input-container input,
+.wizard-step .password-input-container .form-input,
+.wizard-step .password-input-container .password-input {
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
 /* Ensure backgrounds are light enough for black text */
 .form-input,
 .username-input-container {

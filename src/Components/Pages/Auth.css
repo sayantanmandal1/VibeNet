@@ -78,6 +78,29 @@
   background: rgba(255,255,255,0.95) !important;
 }
 
+/* Auth page specific password input styling */
+.auth-container .password-input-container .password-toggle {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.auth-container .password-input-container .password-toggle:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.auth-container .password-input-container .password-toggle:focus {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Login page specific styling */
+.login-page .password-input-container .password-toggle {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.login-page .password-input-container .password-toggle:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
 .form-input {
   color: #000000 !important;
   background: rgba(255,255,255,0.95) !important;

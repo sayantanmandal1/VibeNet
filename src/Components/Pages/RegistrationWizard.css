@@ -161,6 +161,28 @@
   background: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* Password input container styling for registration wizard */
+.wizard-step .password-input-container {
+  width: 100%;
+}
+
+.wizard-step .password-input-container .password-toggle {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+}
+
+.wizard-step .password-input-container .password-toggle:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.wizard-step .password-input-container.dark .password-toggle {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.wizard-step .password-input-container.dark .password-toggle:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
 .form-label {
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.875rem;
