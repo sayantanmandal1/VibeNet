@@ -47,6 +47,21 @@ select {
   background: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* Email input specific overrides */
+.email-input-container input,
+.email-input-container .form-input,
+.email-input-container .email-field {
+  color: #000000 !important;
+}
+
+/* Registration wizard email input overrides */
+.wizard-step .email-input-container input,
+.wizard-step .email-input-container .form-input,
+.wizard-step .email-input-container .email-field {
+  color: #000000 !important;
+  background: transparent !important;
+}
+
 /* Username selector specific overrides */
 .username-selector input,
 .username-input-container input {

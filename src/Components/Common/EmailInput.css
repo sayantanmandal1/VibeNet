@@ -1,0 +1,215 @@
+.email-input {
+  width: 100%;
+}
+
+.email-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.email-input-container:focus-within {
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.email-input-container.success {
+  border-color: #4caf50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.email-input-container.error {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.email-input-container.checking {
+  border-color: #2196F3;
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.email-field {
+  flex: 1;
+  padding: 1rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: #000000 !important;
+  font-size: 1rem;
+  outline: none;
+  font-weight: 500;
+}
+
+.email-field::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+  font-weight: 400;
+}
+
+.status-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 50%;
+  margin-left: 0.5rem;
+}
+
+.status-icon.checking {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.status-icon.success {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.status-icon.error {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(33, 150, 243, 0.3);
+  border-top: 2px solid #2196F3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-message {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-message.success {
+  color: #4caf50;
+}
+
+.status-message.error {
+  color: #ff6b6b;
+}
+
+.status-message.checking {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.email-help {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #ff6b6b;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.email-help p {
+  margin: 0 0 0.5rem 0;
+  color: #ff6b6b;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.email-help ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+.email-help li {
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+
+.email-help a {
+  color: #4facfe;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.email-help a:hover {
+  color: #67c3ff;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .email-input-container {
+    padding: 0 0.75rem;
+  }
+
+  .email-field {
+    padding: 0.875rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .status-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 0.875rem;
+  }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+  }
+
+  .email-help {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .email-field {
+    font-size: 0.8125rem;
+  }
+
+  .status-message {
+    font-size: 0.8125rem;
+  }
+
+  .email-help p,
+  .email-help li {
+    font-size: 0.8125rem;
+  }
+}

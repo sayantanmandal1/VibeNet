@@ -9,6 +9,35 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Check email availability
+router.post('/check-email', [
+  body('email').isEmail().normalizeEmail()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email } = req.body;
+
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    const isAvailable = existingUser.rows.length === 0;
+
+    res.json({
+      available: isAvailable,
+      message: isAvailable ? 'Email is available' : 'Email is already registered'
+    });
+  } catch (error) {
+    console.error('Check email error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Register with email/password
 router.post('/register', [
   body('email').isEmail().normalizeEmail(),

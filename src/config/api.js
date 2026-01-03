@@ -166,6 +166,13 @@ class ApiClient {
     });
   }
 
+  async checkEmailAvailability(email) {
+    return this.request('/auth/check-email', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
   async updateProfile(profileData) {
     const formData = new FormData();
     

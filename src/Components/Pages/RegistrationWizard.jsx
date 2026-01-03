@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../AppContext/AppContext';
 import UsernameSelector from './UsernameSelector';
+import EmailInput from '../Common/EmailInput';
 import Button from './Button';
 import Toast from './Toast';
 import BackButton from '../Common/BackButton';
@@ -45,6 +46,12 @@ const RegistrationWizard = () => {
 
   // Form validation errors
   const [errors, setErrors] = useState({});
+  
+  // Email validation state
+  const [emailValidation, setEmailValidation] = useState({
+    isValid: false,
+    message: ''
+  });
 
   const showToast = (message, type = 'error') => {
     setToast({ message, type });
@@ -76,6 +83,8 @@ const RegistrationWizard = () => {
       stepErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       stepErrors.email = 'Invalid email address';
+    } else if (!emailValidation.isValid) {
+      stepErrors.email = emailValidation.message || 'Please verify email availability';
     }
     
     if (!formData.password) {
@@ -266,13 +275,19 @@ const RegistrationWizard = () => {
       </div>
 
       <div className="form-group">
-        <input
-          type="email"
-          className={`form-input ${errors.email ? 'error' : ''}`}
-          placeholder="Email Address *"
+        <EmailInput
           value={formData.email}
           onChange={(e) => updateFormData('email', e.target.value)}
-          autoComplete="email"
+          error={errors.email}
+          onValidationChange={(isValid, message) => {
+            setEmailValidation({ isValid, message });
+            if (!isValid && message) {
+              setErrors(prev => ({ ...prev, email: message }));
+            } else {
+              setErrors(prev => ({ ...prev, email: '' }));
+            }
+          }}
+          prefilledEmail={prefilledEmail}
         />
         {errors.email && <span className="error-text">{errors.email}</span>}
       </div>

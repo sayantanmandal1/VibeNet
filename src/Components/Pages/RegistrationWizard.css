@@ -161,6 +161,27 @@
   background: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* Email input container styling for registration wizard */
+.wizard-step .email-input-container {
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.wizard-step .email-input-container:focus-within {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.wizard-step .email-input-container.success {
+  background: rgba(76, 175, 80, 0.15) !important;
+}
+
+.wizard-step .email-input-container.error {
+  background: rgba(255, 107, 107, 0.15) !important;
+}
+
+.wizard-step .email-input-container.checking {
+  background: rgba(33, 150, 243, 0.15) !important;
+}
+
 /* Password input container styling for registration wizard */
 .wizard-step .password-input-container {
   width: 100%;
