@@ -3,6 +3,7 @@ import { AuthContext } from "../AppContext/AppContext";
 import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import ProfileEditModal from "./ProfileEditModal";
+import BackButton from "../Common/BackButton";
 import avatar from "../../assets/images/avatar.jpg";
 
 const MyProfile = () => {
@@ -59,6 +60,7 @@ const MyProfile = () => {
 
   return (
     <div className="my-profile w-full">
+      <BackButton to="/" className="light" />
       <div className="flex flex-col items-center bg-white p-8 rounded shadow mt-8 mx-auto max-w-2xl">
         <img
           src={profile?.image || avatar}

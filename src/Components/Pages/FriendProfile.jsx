@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import LeftSide from "../LeftSidebar/LeftSide";
 import Navbar from "../Navbar/Navbar";
 import RightSide from "../RightSidebar/RightSide";
+import BackButton from "../Common/BackButton";
 import profilePic from "../../assets/images/profilePic.jpg";
 import avatar from "../../assets/images/avatar.jpg";
 import { collection, where, query, onSnapshot, getDocs, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
@@ -107,6 +108,7 @@ const FriendProfile = () => {
 
   return (
     <div className="friend-profile w-full">
+      <BackButton to="/" className="light" />
       <div className="fixed top-0 z-10 w-full bg-white">
         <Navbar></Navbar>
       </div>

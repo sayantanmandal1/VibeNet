@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate instead of useHistory
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import BackButton from "../Common/BackButton";
 import styles from './Sup.module.css';
 import longHairedGirl from "../../assets/images/long-haired-girl-watching-through-binoculars (2) 1.png"; 
 import socialMediaIcons from "../../assets/images/Social media icons.svg"; 
@@ -22,6 +23,7 @@ const Support = () => {
 
     return (
         _jsxs("div", { className: styles.support, children: [
+            _jsx(BackButton, { to: "/", className: "light" }),
             _jsx("div", { className: styles.supportChild }),
             _jsxs("div", { className: styles.groupParent, children: [
                 _jsxs("div", { className: styles.rectangleParent, children: [

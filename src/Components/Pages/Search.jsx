@@ -1,9 +1,11 @@
 import React from 'react';
 import styled from 'styled-components';
+import BackButton from "../Common/BackButton";
 
 const Input = () => {
   return (
     <StyledWrapper>
+      <BackButton to="/" className="light" />
       <div>
         <div className="grid" />
         <div id="poda">

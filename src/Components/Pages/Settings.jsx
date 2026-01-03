@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import BackButton from "../Common/BackButton";
 
 const SettingsContainer = styled.div`
   max-width: 480px;
@@ -38,7 +39,9 @@ const Switch = styled.input`
 
 const Settings = ({ darkMode, setDarkMode }) => {
   return (
-    <SettingsContainer>
+    <>
+      <BackButton to="/" className="light" />
+      <SettingsContainer>
       <Title>Settings</Title>
       <ToggleRow>
         <Switch
@@ -50,6 +53,7 @@ const Settings = ({ darkMode, setDarkMode }) => {
         <ToggleLabel htmlFor="darkModeSwitch">Dark Mode</ToggleLabel>
       </ToggleRow>
     </SettingsContainer>
+    </>
   );
 };
 
