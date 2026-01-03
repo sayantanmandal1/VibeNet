@@ -4,6 +4,7 @@ import { AuthContext } from '../AppContext/AppContext';
 import UsernameSelector from './UsernameSelector';
 import Button from './Button';
 import Toast from './Toast';
+import BackButton from '../Common/BackButton';
 import { countries } from '../../utils/countries';
 import './RegistrationWizard.css';
 import './InputOverrides.css';
@@ -407,6 +408,7 @@ const RegistrationWizard = () => {
   return (
     <>
       <ParticlesBackground />
+      <BackButton />
       <div className="registration-wizard">
         <Toast 
           message={toast.message} 

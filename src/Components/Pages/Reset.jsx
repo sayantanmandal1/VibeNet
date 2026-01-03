@@ -4,6 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import Button from "./Button";
 import Toast from "./Toast";
+import BackButton from "../Common/BackButton";
 import './Pages.css';
 import './InputOverrides.css';
 // import emailjs for frontend email sending
@@ -58,6 +59,7 @@ const Reset = () => {
   return (
     <>
       <ParticlesBackground />
+      <BackButton />
       <div className="reset-page">
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'error' })} />
         <div className="auth-container glass-card">

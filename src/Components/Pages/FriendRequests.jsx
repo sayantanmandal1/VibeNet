@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AppContext/AppContext';
 import apiClient from '../../config/api';
+import BackButton from '../Common/BackButton';
 import './FriendRequests.css';
 
 const FriendRequests = () => {
@@ -146,6 +147,7 @@ const FriendRequests = () => {
 
   return (
     <div className="friend-requests-container">
+      <BackButton to="/" className="light" />
       <div className="friend-requests-header">
         <h2>Friend Requests</h2>
         {hasIncomingRequests && (

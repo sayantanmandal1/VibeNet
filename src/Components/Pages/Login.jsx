@@ -7,6 +7,7 @@ import { AuthContext } from "../AppContext/AppContext";
 // Firebase auth imports removed - using AuthContext instead
 import Button from "./Button";
 import Toast from "./Toast";
+import BackButton from "../Common/BackButton";
 import './Auth.css';
 import './Pages.css';
 import './InputOverrides.css';
@@ -71,6 +72,7 @@ const Login = () => {
   return (
     <>
       <ParticlesBackground />
+      <BackButton />
       <div className="login-page flex items-center justify-center min-h-screen">
         <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'error' })} />
         {loading ? (

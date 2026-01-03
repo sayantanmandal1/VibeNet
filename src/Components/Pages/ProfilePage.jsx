@@ -7,6 +7,7 @@ import LeftSide from "../LeftSidebar/LeftSide";
 import RightSide from "../RightSidebar/RightSide";
 import EditProfileModal from "./EditProfileModal";
 import FriendRequestButton from "./FriendRequestButton";
+import BackButton from "../Common/BackButton";
 import "./ProfilePage.css";
 
 const ProfilePage = () => {
@@ -245,6 +246,7 @@ const ProfilePage = () => {
 
   return (
     <div className="profile-page">
+      <BackButton to="/" className="light" />
       <div className="fixed top-0 z-10 w-full bg-white">
         <Navbar />
       </div>
