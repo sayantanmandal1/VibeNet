@@ -46,6 +46,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   margin-bottom: 1rem;
+  color: #000000;
 }
 
 .avatar {
