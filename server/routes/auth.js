@@ -16,18 +16,20 @@ router.post('/register', [
   body('name').trim().isLength({ min: 1 }),
   body('username').trim().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_]+$/),
   body('bio').optional().trim().isLength({ max: 500 }),
-  body('phoneNumber').optional().trim().isMobilePhone(),
+  body('phoneNumber').optional().trim().isLength({ min: 0 }),
   body('country').trim().isLength({ min: 1 }),
-  body('dateOfBirth').isISO8601().toDate(),
+  body('dateOfBirth').isDate(),
   body('gender').trim().isIn(['male', 'female', 'non-binary', 'prefer-not-to-say', 'other'])
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
     const { email, password, name, username, bio, phoneNumber, country, dateOfBirth, gender } = req.body;
+    console.log('Registration attempt:', { email, name, username, country, dateOfBirth, gender });
 
     // Check if user already exists
     const existingUser = await pool.query(
