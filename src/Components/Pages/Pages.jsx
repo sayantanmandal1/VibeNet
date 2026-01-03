@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Land from "./Land";
 import Login from "./Login";
-import Register from "./Register"; // Corrected import statement
 import RegistrationWizard from "./RegistrationWizard";
 import Reset from "./Reset";
 import Home from "./Home";
@@ -26,8 +25,7 @@ const Pages = ({ darkMode, setDarkMode }) => {
 
       {/* Login, Register, and Reset pages with SpookyThreeBackground */}
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/register-wizard" element={<RegistrationWizard />} />
+      <Route path="/register" element={<RegistrationWizard />} />
       <Route path="/reset" element={<Reset />} />
 
       {/* Profile pages */}

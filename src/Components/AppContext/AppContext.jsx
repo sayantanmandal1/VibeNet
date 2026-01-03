@@ -22,17 +22,36 @@ const AppContext = ({ children }) => {
       const popup = await signInWithPopup(auth, provider);
       const idToken = await popup.user.getIdToken();
       
-      const response = await apiClient.googleAuth(idToken);
-      
-      // Store token and user data
-      localStorage.setItem('authToken', response.token);
-      setUser(response.user);
-      setUserData(response.user);
-      
-      navigate('/home');
+      // First check if user exists
+      try {
+        const response = await apiClient.googleAuth(idToken);
+        
+        // Check if user profile is complete
+        if (!response.user.username || !response.user.country || !response.user.dateOfBirth) {
+          // Profile incomplete, redirect to complete registration
+          throw new Error('PROFILE_INCOMPLETE');
+        }
+        
+        // Store token and user data
+        localStorage.setItem('authToken', response.token);
+        setUser(response.user);
+        setUserData(response.user);
+        
+        return response.user;
+      } catch (error) {
+        if (error.message === 'PROFILE_INCOMPLETE') {
+          throw error;
+        }
+        
+        // User doesn't exist, redirect to registration with email
+        throw new Error(`NO_USER_FOUND:${popup.user.email}`);
+      }
     } catch (err) {
-      alert(err.message);
-      console.log(err.message);
+      if (err.message.startsWith('NO_USER_FOUND:')) {
+        const email = err.message.split(':')[1];
+        throw new Error(`NO_USER_FOUND:${email}`);
+      }
+      throw err;
     }
   };
 
@@ -40,28 +59,36 @@ const AppContext = ({ children }) => {
     try {
       const response = await apiClient.login({ email, password });
       
+      // Check if user profile is complete
+      if (!response.user.username || !response.user.country || !response.user.dateOfBirth) {
+        // Profile incomplete, redirect to complete registration
+        throw new Error('PROFILE_INCOMPLETE');
+      }
+      
       // Store token and user data
       localStorage.setItem('authToken', response.token);
       setUser(response.user);
       setUserData(response.user);
       
-      navigate('/home');
+      return response.user;
     } catch (err) {
-      alert(err.message);
-      console.log(err.message);
+      throw err;
     }
   };
 
-  const registerWithEmailAndPassword = async (name, email, password, username, bio, phoneNumber) => {
+  const registerWithEmailAndPassword = async (name, email, password, username, bio, phoneNumber, country, dateOfBirth, gender) => {
     try {
       const registrationData = {
         name,
         email,
-        password
+        password,
+        username,
+        country,
+        dateOfBirth,
+        gender
       };
 
       // Add optional fields if provided
-      if (username) registrationData.username = username;
       if (bio) registrationData.bio = bio;
       if (phoneNumber) registrationData.phoneNumber = phoneNumber;
 
@@ -72,7 +99,7 @@ const AppContext = ({ children }) => {
       setUser(response.user);
       setUserData(response.user);
       
-      navigate('/home');
+      return response.user;
     } catch (err) {
       throw new Error(err.message || 'Registration failed');
     }

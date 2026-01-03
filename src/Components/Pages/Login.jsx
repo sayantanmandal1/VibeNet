@@ -47,7 +47,12 @@ const Login = () => {
         setTimeout(() => navigate("/home"), 1200);
       } catch (error) {
         setLoading(false);
-        showToast("Login failed. Please check your credentials.");
+        if (error.message === 'PROFILE_INCOMPLETE') {
+          showToast('Please complete your registration first.', 'error');
+          setTimeout(() => navigate("/register", { state: { email: values.email } }), 1500);
+        } else {
+          showToast("Login failed. Please check your credentials.");
+        }
       }
     },
     validateOnChange: false,
@@ -114,7 +119,16 @@ const Login = () => {
                     setTimeout(() => navigate("/home"), 1200);
                   } catch (error) {
                     setLoading(false);
-                    showToast("Google login failed. Please try again.");
+                    if (error.message.startsWith('NO_USER_FOUND:')) {
+                      const email = error.message.split(':')[1];
+                      showToast('No account found. Please register first.', 'error');
+                      setTimeout(() => navigate("/register", { state: { email } }), 1500);
+                    } else if (error.message === 'PROFILE_INCOMPLETE') {
+                      showToast('Please complete your registration first.', 'error');
+                      setTimeout(() => navigate("/register"), 1500);
+                    } else {
+                      showToast("Google login failed. Please try again.");
+                    }
                   }
                 }}
                 style={{

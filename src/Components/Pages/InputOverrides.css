@@ -38,7 +38,11 @@ select {
 .registration-wizard input,
 .wizard-step input,
 .wizard-container input,
-.wizard-content input {
+.wizard-content input,
+.registration-wizard select,
+.wizard-step select,
+.wizard-container select,
+.wizard-content select {
   color: #000000 !important;
   background: rgba(255, 255, 255, 0.9) !important;
 }

@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../AppContext/AppContext';
 import UsernameSelector from './UsernameSelector';
 import Button from './Button';
 import Toast from './Toast';
+import { countries } from '../../utils/countries';
 import './RegistrationWizard.css';
 import './InputOverrides.css';
 import ParticlesBackground from '../Background/ParticlesBackground';
@@ -14,21 +15,30 @@ const RegistrationWizard = () => {
   const [toast, setToast] = useState({ message: '', type: 'error' });
   const { registerWithEmailAndPassword, signInWithGoogle } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get pre-filled email from location state (for Google login redirects)
+  const prefilledEmail = location.state?.email || '';
 
   // Form data state
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
     name: '',
-    email: '',
+    email: prefilledEmail,
     password: '',
     confirmPassword: '',
     
     // Step 2: Username Selection
     username: '',
     
-    // Step 3: Optional Info
+    // Step 3: Personal Info
     bio: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    country: '',
+    
+    // Step 4: Profile Completion
+    dateOfBirth: '',
+    gender: ''
   });
 
   // Form validation errors
@@ -108,6 +118,32 @@ const RegistrationWizard = () => {
       stepErrors.phoneNumber = 'Invalid phone number format';
     }
     
+    if (!formData.country.trim()) {
+      stepErrors.country = 'Country is required';
+    }
+    
+    setErrors(stepErrors);
+    return Object.keys(stepErrors).length === 0;
+  };
+
+  const validateStep4 = () => {
+    const stepErrors = {};
+    
+    if (!formData.dateOfBirth) {
+      stepErrors.dateOfBirth = 'Date of birth is required';
+    } else {
+      const birthDate = new Date(formData.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 13) {
+        stepErrors.dateOfBirth = 'You must be at least 13 years old to register';
+      }
+    }
+    
+    if (!formData.gender.trim()) {
+      stepErrors.gender = 'Gender is required';
+    }
+    
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
@@ -125,6 +161,9 @@ const RegistrationWizard = () => {
       case 3:
         isValid = validateStep3();
         break;
+      case 4:
+        isValid = validateStep4();
+        break;
       default:
         isValid = true;
     }
@@ -136,7 +175,7 @@ const RegistrationWizard = () => {
         return;
       }
       
-      if (currentStep < 3) {
+      if (currentStep < 4) {
         setCurrentStep(currentStep + 1);
       } else {
         handleSubmit();
@@ -154,7 +193,7 @@ const RegistrationWizard = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep3()) {
+    if (!validateStep4()) {
       const firstError = Object.values(errors)[0];
       showToast(firstError);
       return;
@@ -169,7 +208,10 @@ const RegistrationWizard = () => {
         password: formData.password,
         username: formData.username.trim(),
         bio: formData.bio.trim() || undefined,
-        phoneNumber: formData.phoneNumber.trim() || undefined
+        phoneNumber: formData.phoneNumber.trim() || undefined,
+        country: formData.country.trim(),
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender.trim()
       };
 
       await registerWithEmailAndPassword(
@@ -178,7 +220,10 @@ const RegistrationWizard = () => {
         registrationData.password,
         registrationData.username,
         registrationData.bio,
-        registrationData.phoneNumber
+        registrationData.phoneNumber,
+        registrationData.country,
+        registrationData.dateOfBirth,
+        registrationData.gender
       );
       
       showToast('Registration successful! Redirecting...', 'success');
@@ -278,8 +323,8 @@ const RegistrationWizard = () => {
 
   const renderStep3 = () => (
     <div className="wizard-step">
-      <h3 className="step-title">Complete Your Profile</h3>
-      <p className="step-description">Add some optional details to personalize your profile</p>
+      <h3 className="step-title">Personal Information</h3>
+      <p className="step-description">Tell us more about yourself</p>
       
       <div className="form-group">
         <textarea
@@ -305,6 +350,57 @@ const RegistrationWizard = () => {
         />
         {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
       </div>
+
+      <div className="form-group">
+        <select
+          className={`form-input ${errors.country ? 'error' : ''}`}
+          value={formData.country}
+          onChange={(e) => updateFormData('country', e.target.value)}
+        >
+          <option value="">Select your country *</option>
+          {countries.map((country) => (
+            <option key={country.code} value={country.name}>
+              {country.name}
+            </option>
+          ))}
+        </select>
+        {errors.country && <span className="error-text">{errors.country}</span>}
+      </div>
+    </div>
+  );
+
+  const renderStep4 = () => (
+    <div className="wizard-step">
+      <h3 className="step-title">Complete Your Profile</h3>
+      <p className="step-description">Final details to complete your registration</p>
+      
+      <div className="form-group">
+        <input
+          type="date"
+          className={`form-input ${errors.dateOfBirth ? 'error' : ''}`}
+          value={formData.dateOfBirth}
+          onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
+          max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+        />
+        <label className="form-label">Date of Birth *</label>
+        {errors.dateOfBirth && <span className="error-text">{errors.dateOfBirth}</span>}
+      </div>
+
+      <div className="form-group">
+        <select
+          className={`form-input ${errors.gender ? 'error' : ''}`}
+          value={formData.gender}
+          onChange={(e) => updateFormData('gender', e.target.value)}
+        >
+          <option value="">Select your gender *</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="non-binary">Non-binary</option>
+          <option value="prefer-not-to-say">Prefer not to say</option>
+          <option value="other">Other</option>
+        </select>
+        {errors.gender && <span className="error-text">{errors.gender}</span>}
+      </div>
     </div>
   );
 
@@ -322,7 +418,7 @@ const RegistrationWizard = () => {
           {/* Progress indicator */}
           <div className="wizard-progress">
             <div className="progress-steps">
-              {[1, 2, 3].map((step) => (
+              {[1, 2, 3, 4].map((step) => (
                 <div
                   key={step}
                   className={`progress-step ${currentStep >= step ? 'active' : ''} ${currentStep > step ? 'completed' : ''}`}
@@ -331,7 +427,8 @@ const RegistrationWizard = () => {
                   <div className="step-label">
                     {step === 1 && 'Basic Info'}
                     {step === 2 && 'Username'}
-                    {step === 3 && 'Profile'}
+                    {step === 3 && 'Personal'}
+                    {step === 4 && 'Complete'}
                   </div>
                 </div>
               ))}
@@ -339,7 +436,7 @@ const RegistrationWizard = () => {
             <div className="progress-bar">
               <div 
                 className="progress-fill" 
-                style={{ width: `${(currentStep / 3) * 100}%` }}
+                style={{ width: `${(currentStep / 4) * 100}%` }}
               />
             </div>
           </div>
@@ -349,6 +446,7 @@ const RegistrationWizard = () => {
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
           </div>
 
           {/* Navigation buttons */}
@@ -366,7 +464,7 @@ const RegistrationWizard = () => {
               label={
                 loading 
                   ? 'Processing...' 
-                  : currentStep === 3 
+                  : currentStep === 4 
                     ? 'Create Account' 
                     : 'Next'
               }

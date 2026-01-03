@@ -154,9 +154,19 @@
 .wizard-step input[type="email"], 
 .wizard-step input[type="password"],
 .wizard-step input[type="tel"],
-.wizard-step textarea {
+.wizard-step input[type="date"],
+.wizard-step textarea,
+.wizard-step select {
   color: #000000 !important;
   background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.form-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  display: block;
 }
 
 .form-input::placeholder {
