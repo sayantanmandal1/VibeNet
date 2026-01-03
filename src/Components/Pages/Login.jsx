@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import ClipLoader from "react-spinners/ClipLoader";
 import { AuthContext } from "../AppContext/AppContext";
-import { auth, onAuthStateChanged } from "../firebase/firebase";
+// Firebase auth imports removed - using AuthContext instead
 import Button from "./Button";
 import Toast from "./Toast";
 import './Auth.css';
