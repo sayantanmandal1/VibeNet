@@ -5,6 +5,7 @@ import * as Yup from "yup";
 import Button from "./Button";
 import Toast from "./Toast";
 import './Pages.css';
+import './InputOverrides.css';
 // import emailjs for frontend email sending
 import emailjs from '@emailjs/browser';
 import ParticlesBackground from '../Background/ParticlesBackground';

@@ -9,6 +9,7 @@ import Button from "./Button";
 import Toast from "./Toast";
 import './Auth.css';
 import './Pages.css';
+import './InputOverrides.css';
 import ParticlesBackground from '../Background/ParticlesBackground';
 
 const Login = () => {

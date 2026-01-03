@@ -27,4 +27,28 @@ body {
   min-height: 100vh;
 }
 
+/* Global input styling to ensure text is always visible */
+input[type="text"],
+input[type="email"], 
+input[type="password"],
+input[type="tel"],
+input[type="search"],
+input[type="url"],
+input[type="number"],
+textarea,
+select {
+  color: #000000 !important;
+}
+
+/* Specific overrides for form inputs */
+.form-input,
+.input-field,
+.auth-form input,
+.wizard-step input,
+.login-page input,
+.register-page input,
+.registration-wizard input {
+  color: #000000 !important;
+}
+
 /* Add your custom CSS here */

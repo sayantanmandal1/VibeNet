@@ -6,7 +6,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.9);
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 0 1rem;
@@ -16,7 +16,7 @@
 
 .username-input-container:focus-within {
   border-color: #667eea;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -31,7 +31,7 @@
 }
 
 .username-prefix {
-  color: rgba(255, 255, 255, 0.8);
+  color: #666666;
   font-size: 1.1rem;
   font-weight: 600;
   margin-right: 0.25rem;
@@ -43,14 +43,14 @@
   padding: 1rem 0.5rem;
   border: none;
   background: transparent;
-  color: white;
+  color: #000000 !important;
   font-size: 1rem;
   outline: none;
   font-weight: 500;
 }
 
 .username-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.5) !important;
   font-weight: 400;
 }
 

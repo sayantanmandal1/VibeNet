@@ -6,6 +6,7 @@ import { AuthContext } from '../AppContext/AppContext';
 import Button from './Button';
 import Toast from './Toast';
 import './Pages.css';
+import './InputOverrides.css';
 import ParticlesBackground from '../Background/ParticlesBackground';
 
 const Register = () => {

@@ -57,3 +57,28 @@
 .auth-button:hover {
   background: var(--primary-color-dark);
 }
+
+/* Force all input elements to have black text */
+.auth-page input[type="text"],
+.auth-page input[type="email"], 
+.auth-page input[type="password"],
+.auth-page input[type="tel"],
+.auth-page textarea,
+.auth-container input[type="text"],
+.auth-container input[type="email"], 
+.auth-container input[type="password"],
+.auth-container input[type="tel"],
+.auth-container textarea,
+.auth-form input[type="text"],
+.auth-form input[type="email"], 
+.auth-form input[type="password"],
+.auth-form input[type="tel"],
+.auth-form textarea {
+  color: #000000 !important;
+  background: rgba(255,255,255,0.95) !important;
+}
+
+.form-input {
+  color: #000000 !important;
+  background: rgba(255,255,255,0.95) !important;
+}

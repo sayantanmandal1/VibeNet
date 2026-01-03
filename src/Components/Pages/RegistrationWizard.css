@@ -143,10 +143,20 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: #000000 !important;
   font-size: 1rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+}
+
+/* Force all input elements in registration wizard to have black text */
+.wizard-step input[type="text"],
+.wizard-step input[type="email"], 
+.wizard-step input[type="password"],
+.wizard-step input[type="tel"],
+.wizard-step textarea {
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
 }
 
 .form-input::placeholder {

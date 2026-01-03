@@ -5,6 +5,7 @@ import UsernameSelector from './UsernameSelector';
 import Button from './Button';
 import Toast from './Toast';
 import './RegistrationWizard.css';
+import './InputOverrides.css';
 import ParticlesBackground from '../Background/ParticlesBackground';
 
 const RegistrationWizard = () => {

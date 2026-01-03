@@ -1,0 +1,73 @@
+/* 
+ * Input Field Visibility Override
+ * This file ensures all input fields have visible black text
+ * Import this file last to override any conflicting styles
+ */
+
+/* Global input overrides with maximum specificity */
+input[type="text"],
+input[type="email"], 
+input[type="password"],
+input[type="tel"],
+input[type="search"],
+input[type="url"],
+input[type="number"],
+textarea,
+select {
+  color: #000000 !important;
+}
+
+/* Form input class overrides */
+.form-input,
+.input-field,
+.username-input {
+  color: #000000 !important;
+}
+
+/* Auth page specific overrides */
+.auth-page input,
+.auth-container input,
+.auth-form input,
+.login-page input,
+.register-page input,
+.reset-page input {
+  color: #000000 !important;
+}
+
+/* Registration wizard specific overrides */
+.registration-wizard input,
+.wizard-step input,
+.wizard-container input,
+.wizard-content input {
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Username selector specific overrides */
+.username-selector input,
+.username-input-container input {
+  color: #000000 !important;
+}
+
+/* Placeholder text overrides */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Focus state overrides */
+input:focus,
+textarea:focus {
+  color: #000000 !important;
+}
+
+/* Ensure backgrounds are light enough for black text */
+.form-input,
+.username-input-container {
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.form-input:focus,
+.username-input-container:focus-within {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
