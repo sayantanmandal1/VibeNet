@@ -34,7 +34,6 @@ const PasswordInput = ({
         onClick={togglePasswordVisibility}
         aria-label={showPassword ? "Hide password" : "Show password"}
       >
-        
         <div className="eye-icon">
           <div className="eye-outer">
             <div className="eye-inner">
