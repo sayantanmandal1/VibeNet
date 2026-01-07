@@ -19,7 +19,7 @@ const Comment = ({ comment, currentUserId, onDelete }) => {
   return (
     <div className="comment">
       <img 
-        src={comment.user.profileImage || "/default-avatar.png"} 
+        src={comment.user.profileImage || "/user-default.jpg"} 
         alt="" 
         className="comment-avatar" 
       />

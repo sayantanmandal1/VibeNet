@@ -263,7 +263,7 @@ const ProfilePage = () => {
             <div className="profile-header">
               <div className="profile-avatar-section">
                 <img 
-                  src={profile.profileImage || '/default-avatar.png'} 
+                  src={profile.profileImage || '/user-default.jpg'} 
                   alt={profile.name}
                   className="profile-avatar"
                 />

@@ -95,12 +95,12 @@ const ProfileView = () => {
                       ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
                       : imageUrl;
                   }
-                  return "/default-avatar.png";
+                  return "/user-default.jpg";
                 })()}
                 alt="Profile"
                 className="profile-avatar"
                 onError={(e) => {
-                  e.target.src = "/default-avatar.png";
+                  e.target.src = "/user-default.jpg";
                 }}
               />
             </div>

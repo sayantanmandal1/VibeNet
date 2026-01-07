@@ -8,5 +8,5 @@ export const socialImages = {
   twitter: '/images/twitter.png',
   location: '/images/location.png',
   job: '/images/job.png',
-  avatar: '/images/default-avatar.png'
+  avatar: '/images/user-default.jpg'
 };

@@ -112,7 +112,7 @@ const Home = () => {
   const [profile, setProfile] = useState({
     name: "John Doe",
     bio: "Building the future, one line at a time.",
-    avatar: "/default-avatar.png",
+    avatar: "/user-default.jpg",
   });
   const { user } = useContext(AuthContext);
   const [showLogout, setShowLogout] = useState(false);

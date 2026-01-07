@@ -158,7 +158,7 @@ const Main = () => {
       <div className="post-form">
         <div className="user-profile">
           <img
-            src={userData?.profileImage || user?.photoURL || "/default-avatar.png"}
+            src={userData?.profileImage || user?.photoURL || "/user-default.jpg"}
             alt="user"
             className="user-avatar"
           />

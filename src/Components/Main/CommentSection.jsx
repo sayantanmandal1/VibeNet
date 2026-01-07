@@ -64,7 +64,7 @@ const CommentSection = ({ postId }) => {
       <div className="flex items-center">
         <div className="mx-2">
           <img
-            src={userData?.profileImage || user?.photoURL || "/default-avatar.png"}
+            src={userData?.profileImage || user?.photoURL || "/user-default.jpg"}
             alt="User"
             className="comment-avatar"
           />

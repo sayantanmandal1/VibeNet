@@ -217,7 +217,7 @@ const FriendProfile = () => {
                 {followersData.length > 0 ? (
                   followersData.map((f) => (
                     <li key={f.uid} className="flex items-center my-2">
-                      <img src={f.image || "/default-avatar.png"} alt="avatar" className="w-8 h-8 rounded-full mr-2" />
+                      <img src={f.image || "/user-default.jpg"} alt="avatar" className="w-8 h-8 rounded-full mr-2" />
                       <a href={`/profile/${f.uid}`}>{f.name}</a>
                     </li>
                   ))
@@ -232,7 +232,7 @@ const FriendProfile = () => {
                 {followingData.length > 0 ? (
                   followingData.map((f) => (
                     <li key={f.uid} className="flex items-center my-2">
-                      <img src={f.image || "/default-avatar.png"} alt="avatar" className="w-8 h-8 rounded-full mr-2" />
+                      <img src={f.image || "/user-default.jpg"} alt="avatar" className="w-8 h-8 rounded-full mr-2" />
                       <a href={`/profile/${f.uid}`}>{f.name}</a>
                     </li>
                   ))

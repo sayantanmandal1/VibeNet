@@ -24,7 +24,7 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
         ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
         : imageUrl;
     }
-    return "/default-avatar.png";
+    return "/user-default.jpg";
   });
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null, message: "" });
   const [loading, setLoading] = useState(false);

@@ -25,7 +25,7 @@ const ProfileEdit = () => {
   });
   
   const [profileImage, setProfileImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState("/default-avatar.png");
+  const [previewImage, setPreviewImage] = useState("/user-default.jpg");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
@@ -57,7 +57,7 @@ const ProfileEdit = () => {
             : imageUrl;
           setPreviewImage(fullImageUrl);
         } else {
-          setPreviewImage("/default-avatar.png");
+          setPreviewImage("/user-default.jpg");
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -80,7 +80,7 @@ const ProfileEdit = () => {
               : imageUrl;
             setPreviewImage(fullImageUrl);
           } else {
-            setPreviewImage("/default-avatar.png");
+            setPreviewImage("/user-default.jpg");
           }
         }
       } finally {

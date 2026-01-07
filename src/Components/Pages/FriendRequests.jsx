@@ -173,7 +173,7 @@ const FriendRequests = () => {
               <div key={request.id} className="request-item">
                 <div className="request-user-info">
                   <img 
-                    src={request.requester.profileImage || '/default-avatar.png'}
+                    src={request.requester.profileImage || '/user-default.jpg'}
                     alt={request.requester.name}
                     className="request-avatar"
                     onClick={() => navigateToProfile(request.requester.username)}
@@ -240,7 +240,7 @@ const FriendRequests = () => {
               <div key={request.id} className="request-item">
                 <div className="request-user-info">
                   <img 
-                    src={request.target.profileImage || '/default-avatar.png'}
+                    src={request.target.profileImage || '/user-default.jpg'}
                     alt={request.target.name}
                     className="request-avatar"
                     onClick={() => navigateToProfile(request.target.username)}
