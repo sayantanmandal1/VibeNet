@@ -201,8 +201,19 @@ const MyProfile = () => {
       <ProfileCard>
         <ProfileHeader>
           <ProfileAvatar
-            src={profile.profileImage || "/src/assets/user-default.jpg"}
+            src={(() => {
+              const imageUrl = profile.profileImage;
+              if (imageUrl) {
+                return imageUrl.startsWith('/') 
+                  ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
+                  : imageUrl;
+              }
+              return "/src/assets/user-default.jpg";
+            })()}
             alt="Profile"
+            onError={(e) => {
+              e.target.src = "/src/assets/user-default.jpg";
+            }}
           />
           <ProfileName>{profile.name}</ProfileName>
           <ProfileUsername>@{profile.username}</ProfileUsername>
@@ -237,14 +248,18 @@ const MyProfile = () => {
                 <span>{profile.phoneNumber}</span>
               </InfoItem>
             )}
-            <InfoItem>
-              <FiMapPin />
-              <span>{profile.country}</span>
-            </InfoItem>
-            <InfoItem>
-              <FiCalendar />
-              <span>Born {new Date(profile.dateOfBirth).toLocaleDateString()}</span>
-            </InfoItem>
+            {profile.location && (
+              <InfoItem>
+                <FiMapPin />
+                <span>{profile.location}</span>
+              </InfoItem>
+            )}
+            {profile.dateOfBirth && (
+              <InfoItem>
+                <FiCalendar />
+                <span>Born {new Date(profile.dateOfBirth).toLocaleDateString()}</span>
+              </InfoItem>
+            )}
           </InfoSection>
 
           <EditButton onClick={() => setShowEdit(true)}>

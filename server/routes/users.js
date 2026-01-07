@@ -103,7 +103,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
     const result = await pool.query(`
       SELECT 
         id, name, username, email, phone_number as "phoneNumber", 
-        bio, location, profile_image as "profileImage", 
+        bio, location, country, profile_image_url as "profileImage", 
         created_at as "createdAt", updated_at as "updatedAt"
       FROM users 
       WHERE id = $1
@@ -344,8 +344,9 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
   body('bio').optional().trim().isLength({ max: 500 }),
   body('username').optional().trim().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_]+$/),
   body('email').optional().isEmail().normalizeEmail(),
-  body('phoneNumber').optional().trim().isMobilePhone(),
-  body('location').optional().trim().isLength({ max: 100 })
+  body('phoneNumber').optional().trim(),
+  body('location').optional().trim().isLength({ max: 100 }),
+  body('country').optional().trim().isLength({ min: 2, max: 2 })
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -354,8 +355,29 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
     }
 
     const userId = req.user.id;
-    const { name, bio, username, email, phoneNumber, location } = req.body;
-    const profileImageUrl = req.file ? `/uploads/profiles/${req.file.filename}` : undefined;
+    const { name, bio, username, email, phoneNumber, location, country } = req.body;
+    
+    // Handle profile image URL
+    let profileImageUrl = undefined;
+    if (req.file) {
+      profileImageUrl = `/uploads/profiles/${req.file.filename}`;
+    }
+
+    // Validate phone number format if provided
+    if (phoneNumber && phoneNumber.trim()) {
+      const phoneRegex = /^\+?[\d\s\-()]+$/;
+      if (!phoneRegex.test(phoneNumber.trim())) {
+        return res.status(400).json({ error: 'Invalid phone number format' });
+      }
+    }
+
+    // Validate location if provided
+    if (location && location.trim()) {
+      const locationRegex = /^[a-zA-Z\s,.\-'()]+$/;
+      if (!locationRegex.test(location.trim()) || location.trim().length < 2) {
+        return res.status(400).json({ error: 'Invalid location format' });
+      }
+    }
 
     // Check username availability if provided and different from current
     if (username) {
@@ -417,12 +439,17 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
 
     if (phoneNumber !== undefined) {
       updates.push(`phone_number = $${paramCount++}`);
-      values.push(phoneNumber);
+      values.push(phoneNumber.trim() || null);
     }
 
     if (location !== undefined) {
       updates.push(`location = $${paramCount++}`);
-      values.push(location);
+      values.push(location.trim() || null);
+    }
+
+    if (country !== undefined) {
+      updates.push(`country = $${paramCount++}`);
+      values.push(country.toUpperCase());
     }
 
     if (profileImageUrl !== undefined) {
@@ -438,7 +465,11 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
           oldUser.profile_image_url.startsWith('/uploads/')) {
         const oldImagePath = path.join(process.cwd(), oldUser.profile_image_url);
         if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+          try {
+            fs.unlinkSync(oldImagePath);
+          } catch (err) {
+            console.warn('Failed to delete old profile image:', err);
+          }
         }
       }
 
@@ -455,7 +486,7 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
       UPDATE users 
       SET ${updates.join(', ')} 
       WHERE id = $${paramCount}
-      RETURNING id, uid, name, bio, username, email, phone_number, profile_image_url, auth_provider
+      RETURNING id, uid, name, bio, username, email, phone_number, location, country, profile_image_url, auth_provider, created_at, updated_at
     `;
 
     const result = await pool.query(query, values);
@@ -471,8 +502,12 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
         username: user.username,
         email: user.email,
         phoneNumber: user.phone_number,
+        location: user.location,
+        country: user.country,
         profileImage: user.profile_image_url,
-        authProvider: user.auth_provider
+        authProvider: user.auth_provider,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at
       }
     });
   } catch (error) {

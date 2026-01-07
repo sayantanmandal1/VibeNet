@@ -12,6 +12,8 @@ CREATE TABLE users (
     profile_image_url TEXT,
     username VARCHAR(50) UNIQUE, -- Unique username for profile URLs
     phone_number VARCHAR(20), -- Optional phone number
+    location VARCHAR(100), -- User location (city, state/province, etc.)
+    country CHAR(2) DEFAULT 'US', -- User country code (ISO 3166-1 alpha-2)
     default_username_hash VARCHAR(255), -- Generated default username
     auth_provider VARCHAR(50) NOT NULL DEFAULT 'email', -- 'email' or 'google'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -89,6 +91,8 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
 CREATE INDEX idx_users_name ON users(name);
+CREATE INDEX idx_users_location ON users(location);
+CREATE INDEX idx_users_country ON users(country);
 CREATE UNIQUE INDEX idx_users_default_username_hash ON users(default_username_hash);
 
 -- Function to update updated_at timestamp

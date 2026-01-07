@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "../../config/api";
 import { validateUsername } from "../../utils/profileUtils";
+import PhoneInput from "../Common/PhoneInput";
+import LocationInput from "../Common/LocationInput";
 import "./EditProfileModal.css";
 
 const EditProfileModal = ({ user, onClose, onSave }) => {
@@ -9,11 +11,21 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
     username: user?.username || "",
     email: user?.email || "",
     phoneNumber: user?.phoneNumber || "",
-    bio: user?.bio || ""
+    bio: user?.bio || "",
+    location: user?.location || "",
+    country: user?.country || "US" // Default to US if not set
   });
   
   const [profileImage, setProfileImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState(user?.profileImage || "/default-avatar.png");
+  const [previewImage, setPreviewImage] = useState(() => {
+    const imageUrl = user?.profileImage;
+    if (imageUrl) {
+      return imageUrl.startsWith('/') 
+        ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
+        : imageUrl;
+    }
+    return "/default-avatar.png";
+  });
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null, message: "" });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -120,6 +132,14 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
       newErrors.phoneNumber = "Please enter a valid phone number";
     }
 
+    if (formData.location && formData.location.trim().length > 0) {
+      if (formData.location.trim().length < 2) {
+        newErrors.location = "Location must be at least 2 characters";
+      } else if (!/^[a-zA-Z\s,.\-'()]+$/.test(formData.location.trim())) {
+        newErrors.location = "Location contains invalid characters";
+      }
+    }
+
     if (usernameStatus.available === false && formData.username !== user?.username) {
       newErrors.username = "Username is not available";
     }
@@ -141,7 +161,9 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
         username: formData.username,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
-        bio: formData.bio
+        bio: formData.bio,
+        location: formData.location,
+        country: formData.country
       };
 
       if (profileImage) {
@@ -277,17 +299,25 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
 
             <div className="form-group">
               <label htmlFor="phone">Phone Number (Optional)</label>
-              <input
-                id="phone"
-                type="tel"
+              <PhoneInput
                 value={formData.phoneNumber}
-                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                className={errors.phoneNumber ? 'error' : ''}
+                onChange={(value) => handleInputChange('phoneNumber', value)}
+                countryCode={formData.country}
+                onCountryChange={(countryCode) => handleInputChange('country', countryCode)}
                 placeholder="Enter your phone number"
+                error={errors.phoneNumber}
               />
-              {errors.phoneNumber && (
-                <div className="error-message">{errors.phoneNumber}</div>
-              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="location">Location (Optional)</label>
+              <LocationInput
+                value={formData.location}
+                onChange={(value) => handleInputChange('location', value)}
+                countryCode={formData.country}
+                placeholder="Enter your location"
+                error={errors.location}
+              />
             </div>
 
             <div className="form-group">

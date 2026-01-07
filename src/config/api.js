@@ -204,6 +204,7 @@ class ApiClient {
     if (profileData.phoneNumber) formData.append('phoneNumber', profileData.phoneNumber);
     if (profileData.bio) formData.append('bio', profileData.bio);
     if (profileData.location) formData.append('location', profileData.location);
+    if (profileData.country) formData.append('country', profileData.country);
     if (profileData.profileImage) formData.append('profileImage', profileData.profileImage);
 
     return this.request('/users/profile', {

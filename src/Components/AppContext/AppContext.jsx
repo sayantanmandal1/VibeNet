@@ -26,8 +26,8 @@ const AppContext = ({ children }) => {
       try {
         const response = await apiClient.googleAuth(idToken);
         
-        // Check if user profile is complete
-        if (!response.user.username || !response.user.country || !response.user.dateOfBirth) {
+        // Check if user profile is complete (only check essential fields)
+        if (!response.user.username) {
           // Profile incomplete, redirect to complete registration
           throw new Error('PROFILE_INCOMPLETE');
         }
@@ -59,8 +59,8 @@ const AppContext = ({ children }) => {
     try {
       const response = await apiClient.login({ email, password });
       
-      // Check if user profile is complete
-      if (!response.user.username || !response.user.country || !response.user.dateOfBirth) {
+      // Check if user profile is complete (only check essential fields)
+      if (!response.user.username) {
         // Profile incomplete, redirect to complete registration
         throw new Error('PROFILE_INCOMPLETE');
       }
@@ -82,15 +82,15 @@ const AppContext = ({ children }) => {
         name,
         email,
         password,
-        username,
-        country,
-        dateOfBirth,
-        gender
+        username
       };
 
       // Add optional fields if provided
       if (bio) registrationData.bio = bio;
       if (phoneNumber) registrationData.phoneNumber = phoneNumber;
+      if (country) registrationData.country = country;
+      if (dateOfBirth) registrationData.dateOfBirth = dateOfBirth;
+      if (gender) registrationData.gender = gender;
       if (profileImage) registrationData.profileImage = profileImage;
 
       const response = await apiClient.register(registrationData);

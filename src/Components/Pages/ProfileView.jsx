@@ -88,9 +88,20 @@ const ProfileView = () => {
           <div className="profile-header">
             <div className="profile-avatar-section">
               <img
-                src={profile?.profileImage || profile?.photoURL || "/default-avatar.png"}
+                src={(() => {
+                  const imageUrl = profile?.profileImage || profile?.photoURL;
+                  if (imageUrl) {
+                    return imageUrl.startsWith('/') 
+                      ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
+                      : imageUrl;
+                  }
+                  return "/default-avatar.png";
+                })()}
                 alt="Profile"
                 className="profile-avatar"
+                onError={(e) => {
+                  e.target.src = "/default-avatar.png";
+                }}
               />
             </div>
             <div className="profile-info">

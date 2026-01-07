@@ -5,6 +5,8 @@ import apiClient from "../../config/api";
 import Navbar from "../Navbar/Navbar";
 import Footer from "../Footer/Footer";
 import BackButton from "../Common/BackButton";
+import PhoneInput from "../Common/PhoneInput";
+import LocationInput from "../Common/LocationInput";
 import { FiSave, FiCamera } from "react-icons/fi";
 import "./ProfileEdit.css";
 
@@ -18,7 +20,8 @@ const ProfileEdit = () => {
     email: "",
     phoneNumber: "",
     bio: "",
-    location: ""
+    location: "",
+    country: "US" // Default country for phone/location
   });
   
   const [profileImage, setProfileImage] = useState(null);
@@ -41,10 +44,21 @@ const ProfileEdit = () => {
           email: profile?.email || "",
           phoneNumber: profile?.phoneNumber || "",
           bio: profile?.bio || "",
-          location: profile?.location || ""
+          location: profile?.location || "",
+          country: profile?.country || "US" // Default to US if not set
         });
         
-        setPreviewImage(profile?.profileImage || profile?.photoURL || "/default-avatar.png");
+        // Set profile image with proper fallback and full URL handling
+        const imageUrl = profile?.profileImage || profile?.photoURL;
+        if (imageUrl) {
+          // If it's a relative path, make it absolute
+          const fullImageUrl = imageUrl.startsWith('/') 
+            ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
+            : imageUrl;
+          setPreviewImage(fullImageUrl);
+        } else {
+          setPreviewImage("/default-avatar.png");
+        }
       } catch (err) {
         console.error('Error fetching profile:', err);
         // Fallback to userData
@@ -55,9 +69,19 @@ const ProfileEdit = () => {
             email: userData.email || "",
             phoneNumber: userData.phoneNumber || "",
             bio: userData.bio || "",
-            location: userData.location || ""
+            location: userData.location || "",
+            country: userData.country || "US" // Default to US if not set
           });
-          setPreviewImage(userData.profileImage || userData.photoURL || "/default-avatar.png");
+          
+          const imageUrl = userData.profileImage || userData.photoURL;
+          if (imageUrl) {
+            const fullImageUrl = imageUrl.startsWith('/') 
+              ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
+              : imageUrl;
+            setPreviewImage(fullImageUrl);
+          } else {
+            setPreviewImage("/default-avatar.png");
+          }
         }
       } finally {
         setLoading(false);
@@ -187,7 +211,8 @@ const ProfileEdit = () => {
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         bio: formData.bio,
-        location: formData.location
+        location: formData.location,
+        country: formData.country
       };
       
       if (profileImage) {
@@ -315,23 +340,24 @@ const ProfileEdit = () => {
 
             <div className="form-group">
               <label className="form-label">Phone Number</label>
-              <input
-                type="tel"
+              <PhoneInput
                 value={formData.phoneNumber}
-                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                className="form-input"
+                onChange={(value) => handleInputChange('phoneNumber', value)}
+                countryCode={formData.country}
+                onCountryChange={(countryCode) => handleInputChange('country', countryCode)}
                 placeholder="Enter your phone number"
+                error={errors.phoneNumber}
               />
             </div>
 
             <div className="form-group">
               <label className="form-label">Location</label>
-              <input
-                type="text"
+              <LocationInput
                 value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                className="form-input"
+                onChange={(value) => handleInputChange('location', value)}
+                countryCode={formData.country}
                 placeholder="Enter your location"
+                error={errors.location}
               />
             </div>
 
