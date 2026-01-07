@@ -12,6 +12,8 @@ class ApiClient {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    console.log('🌐 API Request:', { url, method: options.method || 'GET', body: options.body });
+    
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -28,9 +30,11 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
+      console.log('📡 API Response:', { status: response.status, statusText: response.statusText, url });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ API Error Response:', { status: response.status, errorData });
         
         // Handle specific error cases
         if (response.status === 401) {
@@ -55,9 +59,11 @@ class ApiClient {
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const responseData = await response.json();
+      console.log('✅ API Success Response:', responseData);
+      return responseData;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('💥 API request failed:', error);
       throw error;
     }
   }
