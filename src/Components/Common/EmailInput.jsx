@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import apiClient from '../../config/api';
 import './EmailInput.css';
 
@@ -6,59 +6,98 @@ const EmailInput = ({ value, onChange, error, onValidationChange, prefilledEmail
   const [isChecking, setIsChecking] = useState(false);
   const [validationMessage, setValidationMessage] = useState('');
   const [validationStatus, setValidationStatus] = useState(''); // 'success', 'error', 'checking'
+  const lastCheckedEmail = useRef('');
+  const timeoutRef = useRef(null);
 
   const checkEmailAvailability = useCallback(async (email) => {
     if (!email || email.length < 3 || !/\S+@\S+\.\S+/.test(email)) {
       setValidationMessage('');
       setValidationStatus('');
       onValidationChange?.(false, '');
+      lastCheckedEmail.current = '';
+      return;
+    }
+
+    // Don't check if we already checked this email
+    if (lastCheckedEmail.current === email) {
       return;
     }
 
     setIsChecking(true);
     setValidationStatus('checking');
     setValidationMessage('Checking email availability...');
+    lastCheckedEmail.current = email;
 
     try {
       const response = await apiClient.checkEmailAvailability(email);
       
-      if (response.available) {
-        setValidationMessage('✓ Email is available');
-        setValidationStatus('success');
-        onValidationChange?.(true, '');
-      } else {
-        setValidationMessage('✗ Email is already registered');
-        setValidationStatus('error');
-        onValidationChange?.(false, 'Email is already registered');
+      // Only update if this is still the current email
+      if (lastCheckedEmail.current === email) {
+        if (response.available) {
+          setValidationMessage('✓ Email is available');
+          setValidationStatus('success');
+          onValidationChange?.(true, '');
+        } else {
+          setValidationMessage('✗ Email is already registered');
+          setValidationStatus('error');
+          onValidationChange?.(false, 'Email is already registered');
+        }
       }
     } catch (error) {
       console.error('Email check error:', error);
-      setValidationMessage('Unable to verify email availability');
-      setValidationStatus('error');
-      onValidationChange?.(false, 'Unable to verify email availability');
+      if (lastCheckedEmail.current === email) {
+        setValidationMessage('Unable to verify email availability');
+        setValidationStatus('error');
+        onValidationChange?.(false, 'Unable to verify email availability');
+      }
     } finally {
-      setIsChecking(false);
+      if (lastCheckedEmail.current === email) {
+        setIsChecking(false);
+      }
     }
   }, [onValidationChange]);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (value && value !== prefilledEmail) {
-        checkEmailAvailability(value);
-      }
-    }, 500);
+    // Clear previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
-    return () => clearTimeout(timeoutId);
-  }, [value, checkEmailAvailability, prefilledEmail]);
-
-  // If there's a prefilled email, don't show validation for it initially
-  useEffect(() => {
+    // If there's a prefilled email and it matches current value, don't validate
     if (prefilledEmail && value === prefilledEmail) {
       setValidationMessage('');
       setValidationStatus('');
       onValidationChange?.(true, '');
+      return;
     }
-  }, [prefilledEmail, value, onValidationChange]);
+
+    // Set new timeout for validation
+    timeoutRef.current = setTimeout(() => {
+      if (value && value !== prefilledEmail) {
+        checkEmailAvailability(value);
+      } else {
+        setValidationMessage('');
+        setValidationStatus('');
+        lastCheckedEmail.current = '';
+        onValidationChange?.(false, '');
+      }
+    }, 800); // Increased debounce time
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [value, checkEmailAvailability, prefilledEmail, onValidationChange]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className={`email-input ${className}`}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import apiClient from '../../config/api';
 import './UsernameSelector.css';
 
@@ -7,6 +7,8 @@ const UsernameSelector = ({ value, onChange, error, onValidationChange }) => {
   const [availability, setAvailability] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const lastCheckedUsername = useRef('');
+  const timeoutRef = useRef(null);
 
   // Generate username suggestions
   const generateSuggestions = useCallback((baseUsername) => {
@@ -37,59 +39,91 @@ const UsernameSelector = ({ value, onChange, error, onValidationChange }) => {
       setIsChecking(false);
       setSuggestions([]);
       setShowSuggestions(false);
+      lastCheckedUsername.current = '';
+      onValidationChange?.(false, '');
+      return;
+    }
+
+    // Don't check if we already checked this username
+    if (lastCheckedUsername.current === username) {
       return;
     }
 
     setIsChecking(true);
+    lastCheckedUsername.current = username;
+
     try {
       const response = await apiClient.checkUsernameAvailability(username);
-      setAvailability(response);
       
-      // If username is taken, generate suggestions
-      if (!response.available) {
-        generateSuggestions(username);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
-      
-      // Notify parent component about validation status
-      if (onValidationChange) {
-        onValidationChange(response.available, response.message);
+      // Only update if this is still the current username
+      if (lastCheckedUsername.current === username) {
+        setAvailability(response);
+        
+        // If username is taken, generate suggestions
+        if (!response.available) {
+          generateSuggestions(username);
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+        
+        // Notify parent component about validation status
+        onValidationChange?.(response.available, response.message);
       }
     } catch (error) {
       console.error('Username check error:', error);
-      setAvailability({
-        available: false,
-        error: 'Unable to check username availability'
-      });
-      
-      if (onValidationChange) {
-        onValidationChange(false, 'Unable to check username availability');
+      if (lastCheckedUsername.current === username) {
+        const errorResponse = {
+          available: false,
+          error: 'Unable to check username availability'
+        };
+        setAvailability(errorResponse);
+        onValidationChange?.(false, 'Unable to check username availability');
       }
     } finally {
-      setIsChecking(false);
+      if (lastCheckedUsername.current === username) {
+        setIsChecking(false);
+      }
     }
   }, [onValidationChange, generateSuggestions]);
 
   // Effect to check username when value changes with debouncing
   useEffect(() => {
+    // Clear previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
     if (!value) {
       setAvailability(null);
       setSuggestions([]);
       setShowSuggestions(false);
       setIsChecking(false);
+      lastCheckedUsername.current = '';
+      onValidationChange?.(false, '');
       return;
     }
 
-    const timeoutId = setTimeout(() => {
+    // Set new timeout for validation
+    timeoutRef.current = setTimeout(() => {
       checkUsername(value);
-    }, 500);
+    }, 800); // Increased debounce time
 
     return () => {
-      clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
-  }, [value, checkUsername]);
+  }, [value, checkUsername, onValidationChange]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const newValue = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');

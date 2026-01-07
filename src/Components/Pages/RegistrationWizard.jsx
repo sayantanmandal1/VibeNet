@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../AppContext/AppContext';
 import UsernameSelector from './UsernameSelector';
@@ -52,6 +52,25 @@ const RegistrationWizard = () => {
     isValid: false,
     message: ''
   });
+
+  // Email validation callback - memoized to prevent re-renders
+  const handleEmailValidation = useCallback((isValid, message) => {
+    setEmailValidation({ isValid, message });
+    if (!isValid && message) {
+      setErrors(prev => ({ ...prev, email: message }));
+    } else {
+      setErrors(prev => ({ ...prev, email: '' }));
+    }
+  }, []);
+
+  // Username validation callback - memoized to prevent re-renders
+  const handleUsernameValidation = useCallback((isValid, message) => {
+    if (!isValid && message) {
+      setErrors(prev => ({ ...prev, username: message }));
+    } else {
+      setErrors(prev => ({ ...prev, username: '' }));
+    }
+  }, []);
 
   const showToast = (message, type = 'error') => {
     setToast({ message, type });
@@ -279,14 +298,7 @@ const RegistrationWizard = () => {
           value={formData.email}
           onChange={(e) => updateFormData('email', e.target.value)}
           error={errors.email}
-          onValidationChange={(isValid, message) => {
-            setEmailValidation({ isValid, message });
-            if (!isValid && message) {
-              setErrors(prev => ({ ...prev, email: message }));
-            } else {
-              setErrors(prev => ({ ...prev, email: '' }));
-            }
-          }}
+          onValidationChange={handleEmailValidation}
           prefilledEmail={prefilledEmail}
         />
         {errors.email && <span className="error-text">{errors.email}</span>}
@@ -327,13 +339,7 @@ const RegistrationWizard = () => {
         value={formData.username}
         onChange={(username) => updateFormData('username', username)}
         error={errors.username}
-        onValidationChange={(isValid, message) => {
-          if (!isValid && message) {
-            setErrors(prev => ({ ...prev, username: message }));
-          } else {
-            setErrors(prev => ({ ...prev, username: '' }));
-          }
-        }}
+        onValidationChange={handleUsernameValidation}
       />
     </div>
   );

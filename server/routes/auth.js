@@ -95,12 +95,15 @@ router.post('/register', [
     // Generate unique UID for compatibility
     const uid = uuidv4();
 
+    // Generate default username hash using the database function
+    const defaultUsernameHash = `user_${uid.substring(0, 8)}_${Date.now().toString().substring(-6)}`;
+
     // Create user with comprehensive fields
     const result = await pool.query(
-      `INSERT INTO users (uid, email, password_hash, name, username, bio, phone_number, country, date_of_birth, gender, auth_provider) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+      `INSERT INTO users (uid, email, password_hash, name, username, bio, phone_number, country, date_of_birth, gender, auth_provider, default_username_hash) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
        RETURNING id, uid, email, name, username, bio, phone_number, country, date_of_birth, gender, profile_image_url, auth_provider, created_at`,
-      [uid, email, passwordHash, name, username.toLowerCase(), bio || null, phoneNumber || null, country, dateOfBirth, gender, 'email']
+      [uid, email, passwordHash, name, username.toLowerCase(), bio || null, phoneNumber || null, country, dateOfBirth, gender, 'email', defaultUsernameHash]
     );
 
     const user = result.rows[0];
