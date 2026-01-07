@@ -41,7 +41,8 @@ const RegistrationWizard = () => {
     
     // Step 4: Profile Completion
     dateOfBirth: '',
-    gender: ''
+    gender: '',
+    profileImage: null // Add profile image field
   });
 
   // Form validation errors
@@ -241,7 +242,8 @@ const RegistrationWizard = () => {
         phoneNumber: formData.phoneNumber.trim() || undefined,
         country: formData.country.trim(),
         dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender.trim()
+        gender: formData.gender.trim(),
+        profileImage: formData.profileImage // Include profile image
       };
 
       await registerWithEmailAndPassword(
@@ -253,7 +255,8 @@ const RegistrationWizard = () => {
         registrationData.phoneNumber,
         registrationData.country,
         registrationData.dateOfBirth,
-        registrationData.gender
+        registrationData.gender,
+        registrationData.profileImage
       );
       
       showToast('Registration successful! Redirecting...', 'success');
@@ -396,6 +399,46 @@ const RegistrationWizard = () => {
     <div className="wizard-step">
       <h3 className="step-title">Complete Your Profile</h3>
       <p className="step-description">Final details to complete your registration</p>
+      
+      {/* Profile Picture Upload */}
+      <div className="form-group">
+        <label className="form-label">Profile Picture (Optional)</label>
+        <div className="profile-image-upload">
+          <div className="profile-image-preview">
+            <img
+              src={formData.profileImage ? URL.createObjectURL(formData.profileImage) : "/src/assets/user-default.jpg"}
+              alt="Profile preview"
+              className="profile-preview-img"
+            />
+          </div>
+          <div className="profile-upload-controls">
+            <input
+              type="file"
+              id="profileImage"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  updateFormData('profileImage', file);
+                }
+              }}
+              style={{ display: 'none' }}
+            />
+            <label htmlFor="profileImage" className="upload-btn">
+              Choose Photo
+            </label>
+            {formData.profileImage && (
+              <button
+                type="button"
+                className="remove-btn"
+                onClick={() => updateFormData('profileImage', null)}
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
       
       <div className="form-group">
         <input

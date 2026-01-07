@@ -10,10 +10,7 @@ const EmailInput = ({ value, onChange, error, onValidationChange, prefilledEmail
   const timeoutRef = useRef(null);
 
   const checkEmailAvailability = useCallback(async (email) => {
-    console.log('🔍 Checking email availability for:', email);
-    
     if (!email || email.length < 3 || !/\S+@\S+\.\S+/.test(email)) {
-      console.log('❌ Email validation failed:', { email, length: email?.length });
       setValidationMessage('');
       setValidationStatus('');
       onValidationChange?.(false, '');
@@ -23,11 +20,9 @@ const EmailInput = ({ value, onChange, error, onValidationChange, prefilledEmail
 
     // Don't check if we already checked this email
     if (lastCheckedEmail.current === email) {
-      console.log('⏭️ Skipping - already checked:', email);
       return;
     }
 
-    console.log('🚀 Making API request for email:', email);
     setIsChecking(true);
     setValidationStatus('checking');
     setValidationMessage('Checking email availability...');
@@ -35,7 +30,6 @@ const EmailInput = ({ value, onChange, error, onValidationChange, prefilledEmail
 
     try {
       const response = await apiClient.checkEmailAvailability(email);
-      console.log('✅ API response:', response);
       
       // Only update if this is still the current email
       if (lastCheckedEmail.current === email) {
@@ -50,7 +44,7 @@ const EmailInput = ({ value, onChange, error, onValidationChange, prefilledEmail
         }
       }
     } catch (error) {
-      console.error('❌ Email check error:', error);
+      console.error('Email check error:', error);
       if (lastCheckedEmail.current === email) {
         setValidationMessage('Unable to verify email availability');
         setValidationStatus('error');

@@ -12,7 +12,6 @@ class ApiClient {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    console.log('🌐 API Request:', { url, method: options.method || 'GET', body: options.body });
     
     const config = {
       headers: {
@@ -30,11 +29,9 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      console.log('📡 API Response:', { status: response.status, statusText: response.statusText, url });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ API Error Response:', { status: response.status, errorData });
         
         // Handle specific error cases
         if (response.status === 401) {
@@ -60,20 +57,39 @@ class ApiClient {
       }
 
       const responseData = await response.json();
-      console.log('✅ API Success Response:', responseData);
       return responseData;
     } catch (error) {
-      console.error('💥 API request failed:', error);
+      console.error('API request failed:', error);
       throw error;
     }
   }
 
   // Auth methods
   async register(userData) {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
+    // If there's a profile image, use FormData
+    if (userData.profileImage) {
+      const formData = new FormData();
+      
+      // Add all fields to FormData
+      Object.keys(userData).forEach(key => {
+        if (key === 'profileImage') {
+          formData.append('profileImage', userData[key]);
+        } else {
+          formData.append(key, userData[key]);
+        }
+      });
+      
+      return this.request('/auth/register', {
+        method: 'POST',
+        body: formData,
+      });
+    } else {
+      // Use JSON for registration without image
+      return this.request('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      });
+    }
   }
 
   async login(credentials) {

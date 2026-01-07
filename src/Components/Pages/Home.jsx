@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import CardSection from "../Main/CardSection";
+import RealUsersSection from "../Main/RealUsersSection";
 import Navbar from "../Navbar/Navbar";
 import RightSide from "../RightSidebar/RightSide";
 import Main from "../Main/Main";
@@ -11,7 +11,7 @@ import { AuthContext } from "../AppContext/AppContext";
 import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { useNavigate } from "react-router-dom";
-import { FiSettings } from "react-icons/fi";
+import { FiSettings, FiUser } from "react-icons/fi";
 import { BiLogOut } from "react-icons/bi";
 
 const darkTheme = {
@@ -150,6 +150,12 @@ const Home = () => {
       <PageContainer>
         <Navbar />
         <div style={{ position: "fixed", top: 24, right: 32, zIndex: 2000, display: "flex", gap: 18 }}>
+          <FiUser
+            size={28}
+            style={{ cursor: "pointer", marginRight: 18 }}
+            onClick={() => navigate("/profile")}
+            title="My Profile"
+          />
           <FiSettings
             size={28}
             style={{ cursor: "pointer", marginRight: 18 }}
@@ -176,7 +182,7 @@ const Home = () => {
         )}
         <FeedWrapper>
           <Sidebar>
-            <CardSection />
+            <RealUsersSection />
           </Sidebar>
           <FeedMain>
             <Main />

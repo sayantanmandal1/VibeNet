@@ -1,123 +1,259 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../AppContext/AppContext";
-import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import apiClient from "../../config/api";
 import ProfileEditModal from "./ProfileEditModal";
 import BackButton from "../Common/BackButton";
-import avatar from "../../assets/images/avatar.jpg";
+import styled from "styled-components";
+import { FiEdit3, FiMapPin, FiCalendar, FiMail, FiPhone } from "react-icons/fi";
+
+const ProfileContainer = styled.div`
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+`;
+
+const ProfileCard = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+`;
+
+const ProfileHeader = styled.div`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 30px;
+  text-align: center;
+  color: white;
+`;
+
+const ProfileAvatar = styled.img`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
+  margin-bottom: 20px;
+`;
+
+const ProfileName = styled.h1`
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+`;
+
+const ProfileUsername = styled.p`
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 16px;
+`;
+
+const ProfileBio = styled.p`
+  font-size: 1rem;
+  opacity: 0.8;
+  line-height: 1.5;
+  max-width: 500px;
+  margin: 0 auto;
+`;
+
+const ProfileBody = styled.div`
+  padding: 30px;
+`;
+
+const InfoSection = styled.div`
+  margin-bottom: 30px;
+`;
+
+const InfoTitle = styled.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+`;
+
+const InfoItem = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #666;
+  
+  svg {
+    margin-right: 10px;
+    color: #667eea;
+  }
+`;
+
+const EditButton = styled.button`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px auto;
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+`;
+
+const StatsContainer = styled.div`
+  display: flex;
+  justify-content: space-around;
+  padding: 20px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 20px;
+`;
+
+const StatItem = styled.div`
+  text-align: center;
+  color: white;
+`;
+
+const StatNumber = styled.div`
+  font-size: 1.5rem;
+  font-weight: 700;
+`;
+
+const StatLabel = styled.div`
+  font-size: 0.9rem;
+  opacity: 0.8;
+`;
 
 const MyProfile = () => {
   const { user, userData } = useContext(AuthContext);
   const [showEdit, setShowEdit] = useState(false);
-  const [profile, setProfile] = useState(userData || {});
-  const [userPosts, setUserPosts] = useState([]);
-  const [followersData, setFollowersData] = useState([]);
-  const [followingData, setFollowingData] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    posts: 0,
+    followers: 0,
+    following: 0
+  });
 
   useEffect(() => {
-    setProfile(userData || {});
-  }, [userData]);
-
-  // Fetch this user's posts
-  useEffect(() => {
-    if (!user?.uid) return;
-    const fetchPosts = async () => {
-      const q = query(collection(db, "posts"), where("uid", "==", user.uid));
-      const snap = await getDocs(q);
-      setUserPosts(snap.docs.map((d) => d.data()));
-    };
-    fetchPosts();
-  }, [user?.uid]);
-
-  // Fetch followers/following user data
-  useEffect(() => {
-    const fetchUsers = async (uids, setter) => {
-      if (!uids || uids.length === 0) { setter([]); return; }
-      const usersSnap = await getDocs(collection(db, "users"));
-      const users = usersSnap.docs.map((doc) => doc.data());
-      const filtered = users.filter((u) => uids.includes(u.uid));
-      setter(filtered);
-    };
-    fetchUsers(profile?.followers, setFollowersData);
-    fetchUsers(profile?.following, setFollowingData);
-  }, [profile]);
-
-  const handleProfileSave = async (data) => {
-    setProfile(data);
-    if (user?.uid) {
-      const q = query(collection(db, "users"), where("uid", "==", user.uid));
-      const docSnap = await getDocs(q);
-      const userRef = docSnap.docs[0]?.ref;
-      if (userRef) {
-        await updateDoc(userRef, {
-          name: data.name,
-          bio: data.bio,
-          image: data.avatar,
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        // Get current user profile
+        const response = await apiClient.getCurrentUser();
+        setProfile(response.user);
+        setStats({
+          posts: response.user.postsCount || 0,
+          followers: response.user.followersCount || 0,
+          following: response.user.followingCount || 0
         });
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        // Fallback to userData from context
+        setProfile(userData || user);
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchProfile();
+  }, [user, userData]);
+
+  const handleProfileSave = async (updatedData) => {
+    try {
+      const response = await apiClient.updateProfile(updatedData);
+      setProfile(response.user);
+      setShowEdit(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
     }
   };
 
+  if (loading) {
+    return (
+      <ProfileContainer>
+        <div style={{ textAlign: 'center', color: 'white', paddingTop: '100px' }}>
+          <h2>Loading profile...</h2>
+        </div>
+      </ProfileContainer>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <ProfileContainer>
+        <div style={{ textAlign: 'center', color: 'white', paddingTop: '100px' }}>
+          <h2>Profile not found</h2>
+        </div>
+      </ProfileContainer>
+    );
+  }
+
   return (
-    <div className="my-profile w-full">
-      <BackButton to="/" className="light" />
-      <div className="flex flex-col items-center bg-white p-8 rounded shadow mt-8 mx-auto max-w-2xl">
-        <img
-          src={profile?.image || avatar}
-          alt="avatar"
-          className="w-32 h-32 rounded-full mb-4"
-        />
-        <h2 className="text-2xl font-bold mb-2">{profile?.name}</h2>
-        <p className="text-gray-600 mb-2">{profile?.bio}</p>
-        <button className="btn btn-primary mb-4" onClick={() => setShowEdit(true)}>
-          Edit Profile
-        </button>
-        {/* User's posts */}
-        <div className="user-posts mt-6 w-full">
-          <h3 className="font-semibold mb-2">Your Posts</h3>
-          {userPosts.length === 0 ? (
-            <p>No posts yet.</p>
-          ) : (
-            userPosts.map((post) => (
-              <div key={post.documentId || post.id} className="mb-4 p-4 bg-gray-100 rounded shadow">
-                {post.image && <img src={post.image} alt="post" className="w-full max-h-80 object-cover rounded mb-2" />}
-                <p>{post.text}</p>
-              </div>
-            ))
-          )}
-        </div>
-        {/* Followers/Following lists with names/avatars */}
-        <div className="followers-list mt-4 w-full">
-          <h3 className="font-semibold">Followers</h3>
-          <ul>
-            {followersData.length > 0 ? (
-              followersData.map((f) => (
-                <li key={f.uid} className="flex items-center my-2">
-                  <img src={f.image || "/default-avatar.png"} alt="avatar" className="w-8 h-8 rounded-full mr-2" />
-                  <a href={`/profile/${f.uid}`}>{f.name}</a>
-                </li>
-              ))
-            ) : (
-              <li>No followers yet.</li>
+    <ProfileContainer>
+      <BackButton />
+      <ProfileCard>
+        <ProfileHeader>
+          <ProfileAvatar
+            src={profile.profileImage || "/src/assets/user-default.jpg"}
+            alt="Profile"
+          />
+          <ProfileName>{profile.name}</ProfileName>
+          <ProfileUsername>@{profile.username}</ProfileUsername>
+          {profile.bio && <ProfileBio>{profile.bio}</ProfileBio>}
+          
+          <StatsContainer>
+            <StatItem>
+              <StatNumber>{stats.posts}</StatNumber>
+              <StatLabel>Posts</StatLabel>
+            </StatItem>
+            <StatItem>
+              <StatNumber>{stats.followers}</StatNumber>
+              <StatLabel>Followers</StatLabel>
+            </StatItem>
+            <StatItem>
+              <StatNumber>{stats.following}</StatNumber>
+              <StatLabel>Following</StatLabel>
+            </StatItem>
+          </StatsContainer>
+        </ProfileHeader>
+
+        <ProfileBody>
+          <InfoSection>
+            <InfoTitle>Personal Information</InfoTitle>
+            <InfoItem>
+              <FiMail />
+              <span>{profile.email}</span>
+            </InfoItem>
+            {profile.phoneNumber && (
+              <InfoItem>
+                <FiPhone />
+                <span>{profile.phoneNumber}</span>
+              </InfoItem>
             )}
-          </ul>
-        </div>
-        <div className="following-list mt-4 w-full">
-          <h3 className="font-semibold">Following</h3>
-          <ul>
-            {followingData.length > 0 ? (
-              followingData.map((f) => (
-                <li key={f.uid} className="flex items-center my-2">
-                  <img src={f.image || "/default-avatar.png"} alt="avatar" className="w-8 h-8 rounded-full mr-2" />
-                  <a href={`/profile/${f.uid}`}>{f.name}</a>
-                </li>
-              ))
-            ) : (
-              <li>Not following anyone yet.</li>
-            )}
-          </ul>
-        </div>
-      </div>
+            <InfoItem>
+              <FiMapPin />
+              <span>{profile.country}</span>
+            </InfoItem>
+            <InfoItem>
+              <FiCalendar />
+              <span>Born {new Date(profile.dateOfBirth).toLocaleDateString()}</span>
+            </InfoItem>
+          </InfoSection>
+
+          <EditButton onClick={() => setShowEdit(true)}>
+            <FiEdit3 />
+            Edit Profile
+          </EditButton>
+        </ProfileBody>
+      </ProfileCard>
+
       {showEdit && (
         <ProfileEditModal
           user={profile}
@@ -125,8 +261,8 @@ const MyProfile = () => {
           onSave={handleProfileSave}
         />
       )}
-    </div>
+    </ProfileContainer>
   );
 };
 
-export default MyProfile; 
+export default MyProfile;

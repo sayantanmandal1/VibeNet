@@ -76,7 +76,7 @@ const AppContext = ({ children }) => {
     }
   };
 
-  const registerWithEmailAndPassword = async (name, email, password, username, bio, phoneNumber, country, dateOfBirth, gender) => {
+  const registerWithEmailAndPassword = async (name, email, password, username, bio, phoneNumber, country, dateOfBirth, gender, profileImage) => {
     try {
       const registrationData = {
         name,
@@ -91,6 +91,7 @@ const AppContext = ({ children }) => {
       // Add optional fields if provided
       if (bio) registrationData.bio = bio;
       if (phoneNumber) registrationData.phoneNumber = phoneNumber;
+      if (profileImage) registrationData.profileImage = profileImage;
 
       const response = await apiClient.register(registrationData);
       

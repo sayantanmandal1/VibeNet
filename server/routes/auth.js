@@ -2,12 +2,48 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const admin = require('../config/firebase');
 const pool = require('../config/database');
 const { generateToken, blacklistToken } = require('../utils/jwt');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Configure multer for profile image uploads during registration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.env.UPLOAD_DIR || 'uploads', 'profiles');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname).toLowerCase();
+    cb(null, `profile-${uniqueSuffix}${extension}`);
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'), false);
+  }
+  cb(null, true);
+};
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2MB limit
+    files: 1
+  },
+  fileFilter: fileFilter
+});
 
 // Check email availability
 router.post('/check-email', [
@@ -39,7 +75,7 @@ router.post('/check-email', [
 });
 
 // Register with email/password
-router.post('/register', [
+router.post('/register', upload.single('profileImage'), [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 6 }),
   body('name').trim().isLength({ min: 1 }),
@@ -95,15 +131,22 @@ router.post('/register', [
     // Generate unique UID for compatibility
     const uid = uuidv4();
 
-    // Generate default username hash using the database function
+    // Generate default username hash
     const defaultUsernameHash = `user_${uid.substring(0, 8)}_${Date.now().toString().substring(-6)}`;
+
+    // Handle profile image
+    let profileImageUrl = null;
+    if (req.file) {
+      // Generate the URL for the uploaded image
+      profileImageUrl = `/uploads/profiles/${req.file.filename}`;
+    }
 
     // Create user with comprehensive fields
     const result = await pool.query(
-      `INSERT INTO users (uid, email, password_hash, name, username, bio, phone_number, country, date_of_birth, gender, auth_provider, default_username_hash) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
+      `INSERT INTO users (uid, email, password_hash, name, username, bio, phone_number, country, date_of_birth, gender, auth_provider, default_username_hash, profile_image_url) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
        RETURNING id, uid, email, name, username, bio, phone_number, country, date_of_birth, gender, profile_image_url, auth_provider, created_at`,
-      [uid, email, passwordHash, name, username.toLowerCase(), bio || null, phoneNumber || null, country, dateOfBirth, gender, 'email', defaultUsernameHash]
+      [uid, email, passwordHash, name, username.toLowerCase(), bio || null, phoneNumber || null, country, dateOfBirth, gender, 'email', defaultUsernameHash, profileImageUrl]
     );
 
     const user = result.rows[0];

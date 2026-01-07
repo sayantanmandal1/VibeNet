@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import waterslide from "../../assets/images/waterslide.jpg";
 import remove from "../../assets/images/delete.png";
 import { AuthContext } from "../AppContext/AppContext";
 import apiClient from "../../config/api";
@@ -92,18 +91,8 @@ const RightSide = () => {
 
   return (
     <SidebarContainer>
-      <div className="flex flex-col items-center relative pt-10">
-        <img className="h-48 rounded-md" src={waterslide} alt="nature"></img>
-      </div>
-      <p className="font-roboto font-normal text-sm text-white max-w-fit no-underline tracking-normal leading-tight py-2 mx-2">
-        Through photography, the beauty of Mother Nature can be frozen in time.
-        This category celebrates the magic of our planet and beyond — from the
-        immensity of the great outdoors, to miraculous moments in your own
-        backyard.
-      </p>
-      
       {user && (
-        <div className="mx-2 mt-10">
+        <div className="mx-2 mt-4">
           <p className="font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
             Friends ({friends.length}):
           </p>
@@ -128,9 +117,9 @@ const RightSide = () => {
                   onClick={() => navigateToProfile(friend.username)}
                 >
                   <img
-                    src={friend.profileImage || "/default-avatar.jpg"}
+                    src={friend.profileImage || "/src/assets/user-default.jpg"}
                     alt="User avatar"
-                    className="suggestion-avatar w-8 h-8 rounded-full"
+                    className="suggestion-avatar w-8 h-8 rounded-full object-cover"
                   />
                   <p className="ml-4 font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
                     {friend.name}
@@ -172,9 +161,9 @@ const RightSide = () => {
                     onClick={() => navigateToProfile(suggestion.username)}
                   >
                     <img 
-                      src={suggestion.profileImage || "/default-avatar.png"} 
+                      src={suggestion.profileImage || "/src/assets/user-default.jpg"} 
                       alt="avatar" 
-                      className="w-8 h-8 rounded-full"
+                      className="w-8 h-8 rounded-full object-cover"
                     />
                     <div className="ml-3">
                       <p className="text-white text-sm font-medium">{suggestion.name}</p>
