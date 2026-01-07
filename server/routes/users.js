@@ -351,16 +351,24 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
     const userId = req.user.id;
     const { name, bio, username, email, phoneNumber, location, country } = req.body;
     
+    console.log('Profile update request:', {
+      userId,
+      hasFile: !!req.file,
+      body: req.body
+    });
+    
     // Handle profile image URL
     let profileImageUrl = undefined;
     if (req.file) {
       profileImageUrl = `/uploads/profiles/${req.file.filename}`;
+      console.log('New profile image URL:', profileImageUrl);
     }
 
     // Validate phone number format if provided
@@ -514,6 +522,11 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
     });
   } catch (error) {
     console.error('Update profile error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      requestBody: req.body
+    });
     res.status(500).json({ error: 'Internal server error' });
   }
 });

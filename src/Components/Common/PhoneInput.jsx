@@ -55,12 +55,27 @@ const PhoneInput = ({
       onCountryChange(country.code);
     }
     
-    // Format existing phone number with new country code
+    // Auto-update phone number with new country code
     if (phoneValue) {
-      const formatted = formatPhoneNumber(phoneValue, country.code);
-      setPhoneValue(formatted);
+      // Extract the local number (remove old country code)
+      const oldCountryCode = selectedCountry.phoneCode;
+      let localNumber = phoneValue;
+      
+      if (phoneValue.startsWith(oldCountryCode)) {
+        localNumber = phoneValue.substring(oldCountryCode.length).trim();
+      }
+      
+      // Add new country code
+      const newPhoneValue = localNumber ? `${country.phoneCode} ${localNumber}` : country.phoneCode;
+      setPhoneValue(newPhoneValue);
       if (onChange) {
-        onChange(formatted);
+        onChange(newPhoneValue);
+      }
+    } else {
+      // Set just the country code if no number exists
+      setPhoneValue(country.phoneCode);
+      if (onChange) {
+        onChange(country.phoneCode);
       }
     }
     
@@ -72,13 +87,18 @@ const PhoneInput = ({
   const handlePhoneChange = (e) => {
     let inputValue = e.target.value;
     
-    // Auto-format with country code if user starts typing without it
-    if (inputValue && !inputValue.startsWith(selectedCountry.phoneCode)) {
-      // Remove any existing country code attempts
-      const cleanValue = inputValue.replace(/^\+?\d{1,4}/, '');
-      if (cleanValue && /^\d/.test(cleanValue)) {
-        inputValue = `${selectedCountry.phoneCode}${cleanValue}`;
-      }
+    // Remove any existing country code and add the current one
+    const cleanValue = inputValue.replace(/^\+?\d{1,4}\s*/, '');
+    
+    // Auto-format with current country code
+    if (cleanValue) {
+      inputValue = `${selectedCountry.phoneCode} ${cleanValue}`;
+    } else if (inputValue.startsWith(selectedCountry.phoneCode)) {
+      // Keep the country code if user is just typing it
+      inputValue = inputValue;
+    } else {
+      // Add country code if missing
+      inputValue = selectedCountry.phoneCode + (inputValue ? ` ${inputValue}` : '');
     }
     
     setPhoneValue(inputValue);
@@ -89,7 +109,7 @@ const PhoneInput = ({
 
   const handleInputFocus = () => {
     // Auto-add country code if input is empty
-    if (!phoneValue) {
+    if (!phoneValue || phoneValue.trim() === '') {
       const newValue = selectedCountry.phoneCode;
       setPhoneValue(newValue);
       if (onChange) {

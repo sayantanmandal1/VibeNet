@@ -52,9 +52,14 @@ const ProfileEdit = () => {
         const imageUrl = profile?.profileImage || profile?.photoURL;
         if (imageUrl) {
           // If it's a relative path, make it absolute
-          const fullImageUrl = imageUrl.startsWith('/') 
+          let fullImageUrl = imageUrl.startsWith('/') 
             ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
             : imageUrl;
+          
+          // Add cache-busting parameter to prevent browser caching issues
+          const cacheBuster = `?t=${Date.now()}`;
+          fullImageUrl += cacheBuster;
+          
           setPreviewImage(fullImageUrl);
         } else {
           setPreviewImage("/user-default.jpg");
@@ -75,9 +80,14 @@ const ProfileEdit = () => {
           
           const imageUrl = userData.profileImage || userData.photoURL;
           if (imageUrl) {
-            const fullImageUrl = imageUrl.startsWith('/') 
+            let fullImageUrl = imageUrl.startsWith('/') 
               ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
               : imageUrl;
+            
+            // Add cache-busting parameter to prevent browser caching issues
+            const cacheBuster = `?t=${Date.now()}`;
+            fullImageUrl += cacheBuster;
+            
             setPreviewImage(fullImageUrl);
           } else {
             setPreviewImage("/user-default.jpg");
