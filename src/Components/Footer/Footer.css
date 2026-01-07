@@ -1,33 +1,126 @@
 /* Footer styles */
-.bg-dark-blue {
-  background-color: #1a1b2e;
+.footer {
+  background-color: #000000;
+  color: #ffffff;
+  padding: 40px 20px 20px 20px;
+  margin-top: auto;
+  width: 100%;
 }
 
-.text-light-gray {
-  color: #a5b4cb;
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
 }
 
-.text-white {
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 700;
   color: #ffffff;
 }
 
-.container {
-  max-width: 1200px;
+.logo-icon {
+  font-size: 28px;
 }
 
-.font-semibold {
-  font-weight: 600;
+.logo-text {
+  color: #ffffff;
 }
 
-.flex {
+.footer-description {
+  color: #cccccc;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.social-icons {
   display: flex;
+  gap: 15px;
+  margin-top: 10px;
 }
 
-.space-x-6 {
-  gap: 1.5rem; /* Increase space between icons for a cleaner look */
+.social-icon {
+  font-size: 24px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.2s ease;
 }
 
-/* Desktop grid layout */
+.social-icon:hover {
+  color: #4a90e2;
+  transform: translateY(-2px);
+}
+
+.footer-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 15px 0;
+}
+
+.footer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-list li {
+  color: #cccccc;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 2px 0;
+}
+
+.footer-list li:hover {
+  color: #ffffff;
+}
+
+.footer-bottom {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #333333;
+  text-align: center;
+}
+
+.footer-bottom p {
+  color: #cccccc;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .footer {
+    padding: 30px 15px 15px 15px;
+  }
+  
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  
+  .footer-section {
+    text-align: center;
+  }
+  
+  .social-icons {
+    justify-content: center;
+  }
+}
 @media (min-width: 1024px) {
   .lg\:grid-cols-5 {
     grid-template-columns: repeat(5, 1fr);

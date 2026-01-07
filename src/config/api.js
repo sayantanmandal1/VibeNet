@@ -116,10 +116,6 @@ class ApiClient {
     return this.request('/auth/me');
   }
 
-  async getCurrentUserProfile() {
-    return this.request('/users/profile');
-  }
-
   // Posts methods
   async createPost(postData) {
     const formData = new FormData();
@@ -177,6 +173,10 @@ class ApiClient {
     return this.request(`/users/${userId}`);
   }
 
+  async getCurrentUserProfile() {
+    return this.request('/users/profile');
+  }
+
   async getUserProfileByUsername(username) {
     return this.request(`/users/profile/${username}`);
   }
@@ -203,6 +203,7 @@ class ApiClient {
     if (profileData.email) formData.append('email', profileData.email);
     if (profileData.phoneNumber) formData.append('phoneNumber', profileData.phoneNumber);
     if (profileData.bio) formData.append('bio', profileData.bio);
+    if (profileData.location) formData.append('location', profileData.location);
     if (profileData.profileImage) formData.append('profileImage', profileData.profileImage);
 
     return this.request('/users/profile', {

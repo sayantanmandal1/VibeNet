@@ -95,6 +95,36 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+// Get current user's profile
+router.get('/profile', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await pool.query(`
+      SELECT 
+        id, name, username, email, phone_number as "phoneNumber", 
+        bio, location, profile_image as "profileImage", 
+        created_at as "createdAt", updated_at as "updatedAt"
+      FROM users 
+      WHERE id = $1
+    `, [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+    
+    res.json({
+      success: true,
+      user: user
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get user profile by username (public endpoint with privacy controls)
 router.get('/profile/:username', optionalAuth, allowAnonymous, checkProfileAccess, async (req, res) => {
   try {
@@ -314,7 +344,8 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
   body('bio').optional().trim().isLength({ max: 500 }),
   body('username').optional().trim().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_]+$/),
   body('email').optional().isEmail().normalizeEmail(),
-  body('phoneNumber').optional().trim().isMobilePhone()
+  body('phoneNumber').optional().trim().isMobilePhone(),
+  body('location').optional().trim().isLength({ max: 100 })
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -323,7 +354,7 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
     }
 
     const userId = req.user.id;
-    const { name, bio, username, email, phoneNumber } = req.body;
+    const { name, bio, username, email, phoneNumber, location } = req.body;
     const profileImageUrl = req.file ? `/uploads/profiles/${req.file.filename}` : undefined;
 
     // Check username availability if provided and different from current
@@ -387,6 +418,11 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
     if (phoneNumber !== undefined) {
       updates.push(`phone_number = $${paramCount++}`);
       values.push(phoneNumber);
+    }
+
+    if (location !== undefined) {
+      updates.push(`location = $${paramCount++}`);
+      values.push(location);
     }
 
     if (profileImageUrl !== undefined) {

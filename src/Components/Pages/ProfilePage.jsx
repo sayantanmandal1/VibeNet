@@ -5,6 +5,7 @@ import apiClient from "../../config/api";
 import Navbar from "../Navbar/Navbar";
 import LeftSide from "../LeftSidebar/LeftSide";
 import RightSide from "../RightSidebar/RightSide";
+import Footer from "../Footer/Footer";
 import EditProfileModal from "./EditProfileModal";
 import FriendRequestButton from "./FriendRequestButton";
 import BackButton from "../Common/BackButton";
@@ -339,6 +340,8 @@ const ProfilePage = () => {
           <RightSide />
         </div>
       </div>
+      
+      <Footer />
       
       {showEditModal && (
         <EditProfileModal

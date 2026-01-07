@@ -1,10 +1,11 @@
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../AppContext/AppContext";
+import { FiUser } from "react-icons/fi";
 import "./Navbar.css";
 
 const Navbar = () => {
-  const { user, userData, logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -14,13 +15,6 @@ const Navbar = () => {
     } catch (error) {
       console.error('Logout error:', error);
     }
-  };
-
-  const getProfileUrl = () => {
-    if (userData?.username) {
-      return `/profile/${userData.username}`;
-    }
-    return '/profile';
   };
 
   return (
@@ -37,16 +31,19 @@ const Navbar = () => {
           </Link>
           {user && (
             <>
-              <Link to={getProfileUrl()} className="nav-link">
-                Profile
-              </Link>
               <Link to="/friend-requests" className="nav-link">
                 Friend Requests
               </Link>
+              <div className="profile-dropdown">
+                <Link to="/profile" className="profile-button">
+                  <FiUser className="profile-icon" />
+                  View Profile
+                </Link>
+              </div>
             </>
           )}
           {user ? (
-            <button className="nav-button" onClick={handleLogout}>
+            <button className="nav-button logout-btn" onClick={handleLogout}>
               Logout
             </button>
           ) : (

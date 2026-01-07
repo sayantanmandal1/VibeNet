@@ -6,9 +6,10 @@ import RegistrationWizard from "./RegistrationWizard";
 import Reset from "./Reset";
 import Home from "./Home";
 import ProfilePage from "./ProfilePage";
+import ProfileView from "./ProfileView";
+import ProfileEdit from "./ProfileEdit";
 import FriendRequests from "./FriendRequests";
 import Support from "./Support";
-import MyProfile from "./MyProfile";
 import { AuthContext } from "../AppContext/AppContext";
 import Settings from "./Settings";
 
@@ -23,14 +24,15 @@ const Pages = ({ darkMode, setDarkMode }) => {
       {/* Home page */}
       <Route path="/home" element={user ? <Home /> : <Navigate to="/login" />} />
 
-      {/* Login, Register, and Reset pages with SpookyThreeBackground */}
+      {/* Login, Register, and Reset pages */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<RegistrationWizard />} />
       <Route path="/reset" element={<Reset />} />
 
       {/* Profile pages */}
       <Route path="/profile/:username" element={<ProfilePage />} />
-      <Route path="/profile" element={user ? <MyProfile /> : <Navigate to="/login" />} />
+      <Route path="/profile" element={user ? <ProfileView /> : <Navigate to="/login" />} />
+      <Route path="/profile/edit" element={user ? <ProfileEdit /> : <Navigate to="/login" />} />
 
       {/* Friend requests page */}
       <Route path="/friend-requests" element={user ? <FriendRequests /> : <Navigate to="/login" />} />

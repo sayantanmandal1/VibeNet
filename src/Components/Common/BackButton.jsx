@@ -2,11 +2,15 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BackButton.css';
 
-const BackButton = ({ to = '/', className = '', style = {} }) => {
+const BackButton = ({ to = '/', onClick, className = '', style = {} }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(to);
+    if (onClick) {
+      onClick();
+    } else {
+      navigate(to);
+    }
   };
 
   return (

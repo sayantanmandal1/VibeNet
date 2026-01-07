@@ -1,76 +1,79 @@
 import React from "react";
 import { FaFacebook, FaInstagram, FaTwitter, FaGithub, FaYoutube } from "react-icons/fa";
-import './Footer.css'; // Ensure this CSS file exists and is correctly linked
+import './Footer.css';
 
 const Footer = () => {
   return (
-    <footer className="bg-blue-900 text-gray-400 py-10 px-5">
-      <div className="container mx-auto grid grid-cols-1 lg:grid-cols-5 gap-10">
+    <footer className="footer">
+      <div className="footer-container">
         
         {/* Left section with logo, description, and social icons */}
-        <div className="space-y-4">
-          <div className="text-blue-400 text-3xl font-semibold">
-            <span className="logo-icon">🌊</span> {/* Replace with your logo */}
+        <div className="footer-section">
+          <div className="footer-logo">
+            <span className="logo-icon">🌊</span>
+            <span className="logo-text">VibeNet</span>
           </div>
-          <p className="text-gray-300">
-            Making the world a better place through constructing elegant hierarchies.
+          <p className="footer-description">
+            Connect with friends and share your moments in a vibrant social community.
           </p>
-          <div className="flex space-x-6 text-3xl">
-            <FaFacebook />
-            <FaInstagram />
-            <FaTwitter />
-            <FaGithub />
-            <FaYoutube />
+          <div className="social-icons">
+            <FaFacebook className="social-icon" />
+            <FaInstagram className="social-icon" />
+            <FaTwitter className="social-icon" />
+            <FaGithub className="social-icon" />
+            <FaYoutube className="social-icon" />
           </div>
         </div>
 
         {/* Solutions section */}
-        <div>
-          <h3 className="font-semibold text-white mb-4">Solutions</h3>
-          <ul className="space-y-2">
-            <li>Marketing</li>
-            <li>Analytics</li>
-            <li>Automation</li>
-            <li>Commerce</li>
-            <li>Insights</li>
+        <div className="footer-section">
+          <h3 className="footer-title">Features</h3>
+          <ul className="footer-list">
+            <li>Social Feed</li>
+            <li>Friend Connections</li>
+            <li>Photo Sharing</li>
+            <li>Real-time Chat</li>
+            <li>Privacy Controls</li>
           </ul>
         </div>
 
         {/* Support section */}
-        <div>
-          <h3 className="font-semibold text-white mb-4">Support</h3>
-          <ul className="space-y-2">
-            <li>Submit ticket</li>
+        <div className="footer-section">
+          <h3 className="footer-title">Support</h3>
+          <ul className="footer-list">
+            <li>Help Center</li>
             <li>Documentation</li>
-            <li>Guides</li>
+            <li>Community Guidelines</li>
+            <li>Contact Us</li>
           </ul>
         </div>
 
         {/* Company section */}
-        <div>
-          <h3 className="font-semibold text-white mb-4">Company</h3>
-          <ul className="space-y-2">
-            <li>About</li>
+        <div className="footer-section">
+          <h3 className="footer-title">Company</h3>
+          <ul className="footer-list">
+            <li>About Us</li>
             <li>Blog</li>
-            <li>Jobs</li>
-            <li>Press</li>
+            <li>Careers</li>
+            <li>Press Kit</li>
           </ul>
         </div>
 
         {/* Legal section */}
-        <div>
-          <h3 className="font-semibold text-white mb-4">Legal</h3>
-          <ul className="space-y-2">
-            <li>Terms of service</li>
-            <li>Privacy policy</li>
+        <div className="footer-section">
+          <h3 className="footer-title">Legal</h3>
+          <ul className="footer-list">
+            <li>Terms of Service</li>
+            <li>Privacy Policy</li>
+            <li>Cookie Policy</li>
             <li>License</li>
           </ul>
         </div>
       </div>
 
       {/* Bottom copyright section */}
-      <div className="text-center text-gray-400 mt-10 border-t border-gray-700 pt-5">
-        © 2024 Your Company, Inc. All rights reserved.
+      <div className="footer-bottom">
+        <p>© 2024 VibeNet, Inc. All rights reserved.</p>
       </div>
     </footer>
   );
