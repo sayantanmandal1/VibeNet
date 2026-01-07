@@ -158,13 +158,17 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
     try {
       const updateData = {
         name: formData.name,
-        username: formData.username,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         bio: formData.bio,
         location: formData.location,
         country: formData.country
       };
+
+      // Only send username if it has changed
+      if (formData.username !== user?.username) {
+        updateData.username = formData.username;
+      }
 
       if (profileImage) {
         updateData.profileImage = profileImage;

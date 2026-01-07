@@ -183,7 +183,7 @@ const ProfileEdit = () => {
       newErrors.username = "Username is required";
     } else if (formData.username.length < 3) {
       newErrors.username = "Username must be at least 3 characters";
-    } else if (usernameStatus.available === false) {
+    } else if (usernameStatus.available === false && formData.username !== userData?.username) {
       newErrors.username = "Username is already taken";
     }
 
@@ -207,13 +207,17 @@ const ProfileEdit = () => {
       
       const profileDataToSend = {
         name: formData.name,
-        username: formData.username,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         bio: formData.bio,
         location: formData.location,
         country: formData.country
       };
+      
+      // Only send username if it has changed
+      if (formData.username !== userData?.username) {
+        profileDataToSend.username = formData.username;
+      }
       
       if (profileImage) {
         profileDataToSend.profileImage = profileImage;

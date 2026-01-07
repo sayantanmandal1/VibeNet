@@ -386,9 +386,11 @@ router.put('/profile', authenticateToken, upload.single('profileImage'), [
         [userId]
       );
       
-      const currentUsername = currentUserResult.rows[0].username;
+      const currentUsername = currentUserResult.rows[0]?.username;
       
-      if (username.toLowerCase() !== currentUsername) {
+      // Compare both usernames in lowercase to avoid case sensitivity issues
+      // Skip check if currentUsername is null/undefined or if they're the same
+      if (currentUsername && username.toLowerCase() !== currentUsername.toLowerCase()) {
         const usernameCheck = await pool.query(
           'SELECT id FROM users WHERE username = $1 AND id != $2',
           [username.toLowerCase(), userId]
