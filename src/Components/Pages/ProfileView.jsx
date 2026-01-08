@@ -91,15 +91,28 @@ const ProfileView = () => {
                 src={(() => {
                   const imageUrl = profile?.profileImage || profile?.photoURL;
                   if (imageUrl) {
-                    return imageUrl.startsWith('/') 
-                      ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
-                      : imageUrl;
+                    // Handle different types of image URLs
+                    if (imageUrl.startsWith('http')) {
+                      // External URL (like Google profile images)
+                      return imageUrl;
+                    } else if (imageUrl.startsWith('/')) {
+                      // Local server URL
+                      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                      const cacheBuster = `?t=${Date.now()}`;
+                      return `${baseUrl}${imageUrl}${cacheBuster}`;
+                    } else {
+                      // Relative path
+                      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+                      const cacheBuster = `?t=${Date.now()}`;
+                      return `${baseUrl}/${imageUrl}${cacheBuster}`;
+                    }
                   }
                   return "/user-default.jpg";
                 })()}
                 alt="Profile"
                 className="profile-avatar"
                 onError={(e) => {
+                  console.log('Profile image failed to load:', e.target.src);
                   e.target.src = "/user-default.jpg";
                 }}
               />

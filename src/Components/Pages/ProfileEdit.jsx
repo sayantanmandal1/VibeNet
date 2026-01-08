@@ -50,18 +50,29 @@ const ProfileEdit = () => {
         
         // Set profile image with proper fallback and full URL handling
         const imageUrl = profile?.profileImage || profile?.photoURL;
+        console.log('Profile image URL from API:', imageUrl);
         if (imageUrl) {
-          // If it's a relative path, make it absolute
-          let fullImageUrl = imageUrl.startsWith('/') 
-            ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
-            : imageUrl;
+          // Handle different types of image URLs
+          let fullImageUrl;
+          if (imageUrl.startsWith('http')) {
+            // External URL (like Google profile images)
+            fullImageUrl = imageUrl;
+          } else if (imageUrl.startsWith('/')) {
+            // Local server URL
+            fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`;
+          } else {
+            // Relative path
+            fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${imageUrl}`;
+          }
           
           // Add cache-busting parameter to prevent browser caching issues
           const cacheBuster = `?t=${Date.now()}`;
           fullImageUrl += cacheBuster;
           
+          console.log('Final image URL:', fullImageUrl);
           setPreviewImage(fullImageUrl);
         } else {
+          console.log('No profile image found, using default');
           setPreviewImage("/user-default.jpg");
         }
       } catch (err) {
@@ -80,9 +91,18 @@ const ProfileEdit = () => {
           
           const imageUrl = userData.profileImage || userData.photoURL;
           if (imageUrl) {
-            let fullImageUrl = imageUrl.startsWith('/') 
-              ? `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`
-              : imageUrl;
+            // Handle different types of image URLs
+            let fullImageUrl;
+            if (imageUrl.startsWith('http')) {
+              // External URL (like Google profile images)
+              fullImageUrl = imageUrl;
+            } else if (imageUrl.startsWith('/')) {
+              // Local server URL
+              fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`;
+            } else {
+              // Relative path
+              fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${imageUrl}`;
+            }
             
             // Add cache-busting parameter to prevent browser caching issues
             const cacheBuster = `?t=${Date.now()}`;
@@ -293,7 +313,18 @@ const ProfileEdit = () => {
           {/* Profile Image Section */}
           <div className="image-section">
             <div className="image-preview">
-              <img src={previewImage} alt="Profile Preview" className="preview-avatar" />
+              <img 
+                src={previewImage} 
+                alt="Profile Preview" 
+                className="preview-avatar"
+                onError={(e) => {
+                  console.log('Profile preview image failed to load:', e.target.src);
+                  e.target.src = "/user-default.jpg";
+                }}
+                onLoad={() => {
+                  console.log('Profile preview image loaded successfully:', previewImage);
+                }}
+              />
               <label htmlFor="image-upload" className="image-upload-btn">
                 <FiCamera className="camera-icon" />
                 Change Photo

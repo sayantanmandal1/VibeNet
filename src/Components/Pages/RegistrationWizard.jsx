@@ -7,7 +7,7 @@ import Button from './Button';
 import Toast from './Toast';
 import BackButton from '../Common/BackButton';
 import PasswordInput from '../Common/PasswordInput';
-import { countries } from '../../utils/countries';
+import { countryCodes, getPhoneCodeByCountry } from '../../utils/countryCodes';
 import './RegistrationWizard.css';
 import './InputOverrides.css';
 import ParticlesBackground from '../Background/ParticlesBackground';
@@ -37,7 +37,8 @@ const RegistrationWizard = () => {
     // Step 3: Personal Info
     bio: '',
     phoneNumber: '',
-    country: '',
+    country: '', // This will store country code (e.g., 'US')
+    countryName: '', // This will store country name for display
     
     // Step 4: Profile Completion
     dateOfBirth: '',
@@ -78,10 +79,26 @@ const RegistrationWizard = () => {
   };
 
   const updateFormData = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      
+      // If country is changed, automatically update phone number with country code
+      if (field === 'country') {
+        const selectedCountry = countryCodes.find(c => c.code === value);
+        if (selectedCountry) {
+          newData.countryName = selectedCountry.name;
+          // Auto-add country code to phone number if it's empty or doesn't have the code
+          const phoneCode = selectedCountry.phoneCode;
+          if (!newData.phoneNumber || !newData.phoneNumber.startsWith(phoneCode)) {
+            // Extract local number if there's an existing country code
+            const localNumber = newData.phoneNumber.replace(/^\+?\d{1,4}\s*/, '');
+            newData.phoneNumber = localNumber ? `${phoneCode} ${localNumber}` : phoneCode;
+          }
+        }
+      }
+      
+      return newData;
+    });
     
     // Clear error for this field
     if (errors[field]) {
@@ -366,31 +383,36 @@ const RegistrationWizard = () => {
       </div>
 
       <div className="form-group">
-        <input
-          type="tel"
-          className={`form-input ${errors.phoneNumber ? 'error' : ''}`}
-          placeholder="Phone Number (optional)"
-          value={formData.phoneNumber}
-          onChange={(e) => updateFormData('phoneNumber', e.target.value)}
-          autoComplete="tel"
-        />
-        {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
-      </div>
-
-      <div className="form-group">
         <select
           className={`form-input ${errors.country ? 'error' : ''}`}
           value={formData.country}
           onChange={(e) => updateFormData('country', e.target.value)}
         >
           <option value="">Select your country *</option>
-          {countries.map((country) => (
-            <option key={country.code} value={country.name}>
-              {country.name}
+          {countryCodes.map((country) => (
+            <option key={country.code} value={country.code}>
+              {country.flag} {country.name}
             </option>
           ))}
         </select>
         {errors.country && <span className="error-text">{errors.country}</span>}
+      </div>
+
+      <div className="form-group">
+        <div className="phone-input-wrapper">
+          <div className="country-code-display">
+            {formData.country ? getPhoneCodeByCountry(formData.country) : '+1'}
+          </div>
+          <input
+            type="tel"
+            className={`form-input phone-input ${errors.phoneNumber ? 'error' : ''}`}
+            placeholder="Phone Number (optional)"
+            value={formData.phoneNumber}
+            onChange={(e) => updateFormData('phoneNumber', e.target.value)}
+            autoComplete="tel"
+          />
+        </div>
+        {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
       </div>
     </div>
   );
@@ -406,7 +428,7 @@ const RegistrationWizard = () => {
         <div className="profile-image-upload">
           <div className="profile-image-preview">
             <img
-              src={formData.profileImage ? URL.createObjectURL(formData.profileImage) : "/src/assets/user-default.jpg"}
+              src={formData.profileImage ? URL.createObjectURL(formData.profileImage) : "/user-default.jpg"}
               alt="Profile preview"
               className="profile-preview-img"
             />
