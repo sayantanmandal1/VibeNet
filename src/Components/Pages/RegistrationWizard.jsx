@@ -82,11 +82,15 @@ const RegistrationWizard = () => {
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       
-      // If country is changed, automatically update phone number with country code
+      // If country is changed, automatically update phone number with country code and location
       if (field === 'country') {
         const selectedCountry = countryCodes.find(c => c.code === value);
         if (selectedCountry) {
           newData.countryName = selectedCountry.name;
+          
+          // Auto-extract location from country name
+          newData.location = selectedCountry.name;
+          
           // Auto-add country code to phone number if it's empty or doesn't have the code
           const phoneCode = selectedCountry.phoneCode;
           if (!newData.phoneNumber || !newData.phoneNumber.startsWith(phoneCode)) {
@@ -257,6 +261,7 @@ const RegistrationWizard = () => {
         username: formData.username.trim(),
         bio: formData.bio.trim() || undefined,
         phoneNumber: formData.phoneNumber.trim() || undefined,
+        location: formData.location.trim() || formData.countryName || undefined, // Use extracted location from country
         country: formData.country.trim(),
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender.trim(),
@@ -270,6 +275,7 @@ const RegistrationWizard = () => {
         registrationData.username,
         registrationData.bio,
         registrationData.phoneNumber,
+        registrationData.location, // Pass location
         registrationData.country,
         registrationData.dateOfBirth,
         registrationData.gender,

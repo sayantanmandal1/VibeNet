@@ -76,7 +76,7 @@ const AppContext = ({ children }) => {
     }
   };
 
-  const registerWithEmailAndPassword = async (name, email, password, username, bio, phoneNumber, country, dateOfBirth, gender, profileImage) => {
+  const registerWithEmailAndPassword = async (name, email, password, username, bio, phoneNumber, location, country, dateOfBirth, gender, profileImage) => {
     try {
       const registrationData = {
         name,
@@ -88,6 +88,7 @@ const AppContext = ({ children }) => {
       // Add optional fields if provided
       if (bio) registrationData.bio = bio;
       if (phoneNumber) registrationData.phoneNumber = phoneNumber;
+      if (location) registrationData.location = location;
       if (country) registrationData.country = country;
       if (dateOfBirth) registrationData.dateOfBirth = dateOfBirth;
       if (gender) registrationData.gender = gender;

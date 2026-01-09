@@ -263,9 +263,29 @@ const ProfilePage = () => {
             <div className="profile-header">
               <div className="profile-avatar-section">
                 <img 
-                  src={profile.profileImage || '/user-default.jpg'} 
+                  src={(() => {
+                    const imageUrl = profile.profileImage;
+                    if (!imageUrl) return '/user-default.jpg';
+                    
+                    if (imageUrl.startsWith('http')) {
+                      return imageUrl;
+                    } else if (imageUrl.startsWith('/uploads/')) {
+                      return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}?t=${Date.now()}`;
+                    } else if (imageUrl.startsWith('/')) {
+                      return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}?t=${Date.now()}`;
+                    } else {
+                      return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${imageUrl}?t=${Date.now()}`;
+                    }
+                  })()} 
                   alt={profile.name}
                   className="profile-avatar"
+                  onError={(e) => {
+                    console.log('Profile image failed to load:', e.target.src);
+                    e.target.src = "/user-default.jpg";
+                  }}
+                  onLoad={() => {
+                    console.log('Profile image loaded successfully');
+                  }}
                 />
               </div>
               

@@ -82,6 +82,7 @@ router.post('/register', upload.single('profileImage'), [
   body('username').trim().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9_]+$/),
   body('bio').optional().trim().isLength({ max: 500 }),
   body('phoneNumber').optional().trim().isLength({ min: 0 }),
+  body('location').optional().trim().isLength({ max: 100 }),
   body('country').trim().isLength({ min: 1 }),
   body('dateOfBirth').isDate(),
   body('gender').trim().isIn(['male', 'female', 'non-binary', 'prefer-not-to-say', 'other'])
@@ -93,7 +94,7 @@ router.post('/register', upload.single('profileImage'), [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password, name, username, bio, phoneNumber, country, dateOfBirth, gender } = req.body;
+    const { email, password, name, username, bio, phoneNumber, location, country, dateOfBirth, gender } = req.body;
     console.log('Registration attempt:', { email, name, username, country, dateOfBirth, gender });
 
     // Check if user already exists
@@ -143,10 +144,10 @@ router.post('/register', upload.single('profileImage'), [
 
     // Create user with comprehensive fields
     const result = await pool.query(
-      `INSERT INTO users (uid, email, password_hash, name, username, bio, phone_number, country, date_of_birth, gender, auth_provider, default_username_hash, profile_image_url) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
-       RETURNING id, uid, email, name, username, bio, phone_number, country, date_of_birth, gender, profile_image_url, auth_provider, created_at`,
-      [uid, email, passwordHash, name, username.toLowerCase(), bio || null, phoneNumber || null, country, dateOfBirth, gender, 'email', defaultUsernameHash, profileImageUrl]
+      `INSERT INTO users (uid, email, password_hash, name, username, bio, phone_number, location, country, date_of_birth, gender, auth_provider, default_username_hash, profile_image_url) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+       RETURNING id, uid, email, name, username, bio, phone_number, location, country, date_of_birth, gender, profile_image_url, auth_provider, created_at`,
+      [uid, email, passwordHash, name, username.toLowerCase(), bio || null, phoneNumber || null, location || null, country, dateOfBirth, gender, 'email', defaultUsernameHash, profileImageUrl]
     );
 
     const user = result.rows[0];
@@ -163,6 +164,7 @@ router.post('/register', upload.single('profileImage'), [
         username: user.username,
         bio: user.bio,
         phoneNumber: user.phone_number,
+        location: user.location,
         country: user.country,
         dateOfBirth: user.date_of_birth,
         gender: user.gender,
@@ -192,7 +194,7 @@ router.post('/login', [
 
     // Get user from database
     const result = await pool.query(
-      'SELECT id, uid, email, password_hash, name, username, bio, phone_number, country, date_of_birth, gender, profile_image_url, auth_provider FROM users WHERE email = $1',
+      'SELECT id, uid, email, password_hash, name, username, bio, phone_number, location, country, date_of_birth, gender, profile_image_url, auth_provider FROM users WHERE email = $1',
       [email]
     );
 
@@ -228,6 +230,7 @@ router.post('/login', [
         username: user.username,
         bio: user.bio,
         phoneNumber: user.phone_number,
+        location: user.location,
         country: user.country,
         dateOfBirth: user.date_of_birth,
         gender: user.gender,

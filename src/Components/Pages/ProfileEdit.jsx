@@ -57,8 +57,11 @@ const ProfileEdit = () => {
           if (imageUrl.startsWith('http')) {
             // External URL (like Google profile images)
             fullImageUrl = imageUrl;
+          } else if (imageUrl.startsWith('/uploads/')) {
+            // Local server URL - construct full URL
+            fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`;
           } else if (imageUrl.startsWith('/')) {
-            // Local server URL
+            // Other local paths
             fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`;
           } else {
             // Relative path
@@ -96,8 +99,11 @@ const ProfileEdit = () => {
             if (imageUrl.startsWith('http')) {
               // External URL (like Google profile images)
               fullImageUrl = imageUrl;
+            } else if (imageUrl.startsWith('/uploads/')) {
+              // Local server URL - construct full URL
+              fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`;
             } else if (imageUrl.startsWith('/')) {
-              // Local server URL
+              // Other local paths
               fullImageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}`;
             } else {
               // Relative path
