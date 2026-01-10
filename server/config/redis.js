@@ -38,10 +38,12 @@ const connectRedis = async () => {
   try {
     await client.connect();
     console.log('Redis connection established successfully');
+    return true;
   } catch (error) {
     console.error('Failed to connect to Redis:', error.message);
-    console.log('Make sure Redis is running. You can start it with: docker-compose up -d');
-    // Don't exit the process, just log the error
+    console.log('Server will continue without Redis. Some features may be limited.');
+    console.log('To enable Redis, make sure it\'s running: docker-compose up -d');
+    return false;
   }
 };
 

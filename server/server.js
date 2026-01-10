@@ -29,13 +29,32 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration - More permissive for development
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://yourdomain.com'] 
-    : ['http://localhost:3000'],
-  credentials: true
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 }));
+
+// Additional CORS headers for development
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV !== 'production') {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+  }
+  next();
+});
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -85,16 +104,25 @@ app.use('*', (req, res) => {
 // Start server
 const startServer = async () => {
   try {
-    // Connect to Redis
-    await connectRedis();
+    // Try to connect to Redis (non-blocking)
+    const redisConnected = await connectRedis();
+    if (!redisConnected) {
+      console.log('Starting server without Redis...');
+    }
     
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`CORS enabled for: http://localhost:3000`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
-    process.exit(1);
+    // Try to start without Redis
+    console.log('Attempting to start server without external dependencies...');
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT} (limited functionality)`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
   }
 };
 
