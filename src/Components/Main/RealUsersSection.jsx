@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../AppContext/AppContext";
 import apiClient from "../../config/api";
+import { getProfileImageUrl, handleImageError } from "../../utils/imageUtils";
 import "./CardSection.css";
 
 const RealUsersSection = () => {
@@ -68,9 +69,10 @@ const RealUsersSection = () => {
           <div className="user-card">
             <div className="user-avatar-container">
               <img
-                src={userData.profileImage || "/src/assets/user-default.jpg"}
+                src={getProfileImageUrl(userData)}
                 alt={userData.name}
                 className="user-avatar"
+                onError={(e) => handleImageError(e, '/user-default.jpg')}
               />
               <div className={`status-indicator ${userData.isOnline ? 'online' : 'offline'}`}></div>
             </div>

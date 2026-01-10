@@ -6,6 +6,7 @@ import './LeftSide.css';
 import { FaAppStore, FaLaptop, FaPhotoVideo, FaTiktok, FaFacebook, FaTwitter } from 'react-icons/fa';
 import UserCard from '../UserCard/UserCard';
 import apiClient from '../../config/api';
+import { getProfileImageUrl, handleImageError } from '../../utils/imageUtils';
 
 const LeftSide = () => {
   const count = useRef(0);
@@ -72,8 +73,9 @@ const LeftSide = () => {
         <div className="profile-avatar-container">
           <img 
             className="profile-avatar"
-            src={user?.photoURL || socialImages.avatar} 
+            src={getProfileImageUrl(user || userData)} 
             alt="avatar"
+            onError={(e) => handleImageError(e, socialImages.avatar)}
           />
         </div>
       </div>
@@ -170,13 +172,14 @@ const LeftSide = () => {
       <div className="profile-section">
         <div className="profile-info" title="Profile">
           <img 
-            src={userProfile.avatar}
+            src={getProfileImageUrl(user || userData)}
             alt="Profile" 
             className="profile-avatar"
+            onError={(e) => handleImageError(e, '/user-default.jpg')}
           />
           <div className="profile-details">
-            <h3 className="profile-name">User Name</h3>
-            <p className="profile-title">{userProfile.job}</p>
+            <h3 className="profile-name">{user?.name || userData?.name || 'User Name'}</h3>
+            <p className="profile-title">{user?.bio || userData?.bio || userProfile.job}</p>
           </div>
         </div>
       </div>

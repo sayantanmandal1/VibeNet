@@ -9,6 +9,7 @@ import { AuthContext } from "../AppContext/AppContext";
 import apiClient from "../../config/api";
 import CommentSection from "./CommentSection";
 import FriendRequestButton from "../Pages/FriendRequestButton";
+import { getProfileImageUrl, getPostImageUrl, handleImageError } from "../../utils/imageUtils";
 
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '';
@@ -87,10 +88,11 @@ const PostCard = ({ post, onPostUpdate }) => {
     <div className="post-card mb-4">
       <div className="post-header">
         <img
-          src={post.user.profileImage || avatar}
+          src={getProfileImageUrl(post.user)}
           alt="avatar"
           className="post-avatar cursor-pointer"
           onClick={navigateToProfile}
+          onError={(e) => handleImageError(e, avatar)}
         />
         <div className="flex flex-col ml-4">
           <p 
@@ -125,8 +127,12 @@ const PostCard = ({ post, onPostUpdate }) => {
         {post.imageUrl && (
           <img 
             className="post-image" 
-            src={`http://localhost:5000${post.imageUrl}`} 
-            alt="postImage" 
+            src={getPostImageUrl(post.imageUrl)} 
+            alt="postImage"
+            onError={(e) => {
+              console.log('Post image failed to load:', e.target.src);
+              e.target.style.display = 'none';
+            }}
           />
         )}
       </div>

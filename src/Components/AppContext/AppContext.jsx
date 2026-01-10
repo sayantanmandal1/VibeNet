@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -10,62 +10,12 @@ import apiClient from "../../config/api";
 
 export const AuthContext = createContext();
 
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
-
 const AppContext = ({ children }) => {
   const provider = new GoogleAuthProvider();
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sessionExpired, setSessionExpired] = useState(false);
   const navigate = useNavigate();
-  const sessionTimeoutRef = useRef(null);
-  const lastActivityRef = useRef(Date.now());
-
-  // Session management functions
-  const updateActivity = () => {
-    lastActivityRef.current = Date.now();
-    localStorage.setItem('lastActivity', lastActivityRef.current.toString());
-  };
-
-  const checkSessionExpiry = () => {
-    const lastActivity = parseInt(localStorage.getItem('lastActivity') || '0');
-    const now = Date.now();
-    
-    if (lastActivity && (now - lastActivity) > SESSION_TIMEOUT) {
-      // Session expired due to inactivity
-      handleSessionExpiry();
-      return true;
-    }
-    return false;
-  };
-
-  const handleSessionExpiry = () => {
-    setSessionExpired(true);
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('lastActivity');
-    setUser(null);
-    setUserData(null);
-    
-    // Clear any existing timeout
-    if (sessionTimeoutRef.current) {
-      clearTimeout(sessionTimeoutRef.current);
-    }
-  };
-
-  const resetSessionTimeout = () => {
-    // Clear existing timeout
-    if (sessionTimeoutRef.current) {
-      clearTimeout(sessionTimeoutRef.current);
-    }
-
-    // Set new timeout
-    sessionTimeoutRef.current = setTimeout(() => {
-      handleSessionExpiry();
-    }, SESSION_TIMEOUT);
-
-    updateActivity();
-  };
 
   const signInWithGoogle = async () => {
     try {
@@ -86,8 +36,6 @@ const AppContext = ({ children }) => {
         localStorage.setItem('authToken', response.token);
         setUser(response.user);
         setUserData(response.user);
-        setSessionExpired(false);
-        resetSessionTimeout();
         
         return response.user;
       } catch (error) {
@@ -121,8 +69,6 @@ const AppContext = ({ children }) => {
       localStorage.setItem('authToken', response.token);
       setUser(response.user);
       setUserData(response.user);
-      setSessionExpired(false);
-      resetSessionTimeout();
       
       return response.user;
     } catch (err) {
@@ -154,8 +100,6 @@ const AppContext = ({ children }) => {
       localStorage.setItem('authToken', response.token);
       setUser(response.user);
       setUserData(response.user);
-      setSessionExpired(false);
-      resetSessionTimeout();
       
       return response.user;
     } catch (err) {
@@ -180,16 +124,8 @@ const AppContext = ({ children }) => {
       console.log('Logout error:', err);
     } finally {
       localStorage.removeItem('authToken');
-      localStorage.removeItem('lastActivity');
       setUser(null);
       setUserData(null);
-      setSessionExpired(false);
-      
-      // Clear session timeout
-      if (sessionTimeoutRef.current) {
-        clearTimeout(sessionTimeoutRef.current);
-      }
-      
       navigate('/');
     }
   };
@@ -218,14 +154,12 @@ const AppContext = ({ children }) => {
           const response = await apiClient.getCurrentUser();
           setUser(response.user);
           setUserData(response.user);
-          setSessionExpired(false);
-          // Only set timeout, don't check expiry on init to avoid immediate logout
-          resetSessionTimeout();
         } catch (error) {
           console.error('Failed to get current user:', error);
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('lastActivity');
-          setSessionExpired(true);
+          // Only remove token if it's actually invalid (401 error)
+          if (error.message.includes('Authentication required')) {
+            localStorage.removeItem('authToken');
+          }
         }
       }
       
@@ -233,14 +167,6 @@ const AppContext = ({ children }) => {
     };
 
     initializeAuth();
-
-    // Cleanup function
-    return () => {
-      if (sessionTimeoutRef.current) {
-        clearTimeout(sessionTimeoutRef.current);
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Remove the automatic redirect - let route protection handle it
@@ -259,12 +185,9 @@ const AppContext = ({ children }) => {
     signOutUser,
     updateUserData,
     refreshUserProfile,
-    updateActivity,
-    checkSessionExpiry,
     user,
     userData,
     loading,
-    sessionExpired,
   };
 
   return (

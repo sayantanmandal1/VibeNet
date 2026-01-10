@@ -37,9 +37,7 @@ class ApiClient {
         
         // Handle specific error cases
         if (response.status === 401) {
-          // Token expired or invalid - clear auth and redirect to login
-          localStorage.removeItem('authToken');
-          window.location.href = '/login';
+          // Token expired or invalid - just throw error, don't redirect
           throw new Error('Authentication required. Please log in again.');
         }
         

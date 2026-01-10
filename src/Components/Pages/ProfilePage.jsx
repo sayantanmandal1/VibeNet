@@ -9,6 +9,7 @@ import Footer from "../Footer/Footer";
 import EditProfileModal from "./EditProfileModal";
 import FriendRequestButton from "./FriendRequestButton";
 import BackButton from "../Common/BackButton";
+import { getProfileImageUrl as getImageUrl, handleImageError } from "../../utils/imageUtils";
 import { 
   FiMail, 
   FiPhone, 
@@ -149,18 +150,7 @@ const ProfilePage = () => {
   };
 
   const getProfileImageUrl = () => {
-    const imageUrl = profile?.profileImage;
-    if (!imageUrl) return '/user-default.jpg';
-    
-    if (imageUrl.startsWith('http')) {
-      return imageUrl;
-    } else if (imageUrl.startsWith('/uploads/')) {
-      return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}?t=${Date.now()}`;
-    } else if (imageUrl.startsWith('/')) {
-      return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${imageUrl}?t=${Date.now()}`;
-    } else {
-      return `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${imageUrl}?t=${Date.now()}`;
-    }
+    return getImageUrl(profile);
   };
 
   if (loading) {
@@ -464,9 +454,7 @@ const ProfilePage = () => {
                       src={getProfileImageUrl()} 
                       alt={profile.name}
                       className="profile-avatar-new"
-                      onError={(e) => {
-                        e.target.src = "/user-default.jpg";
-                      }}
+                      onError={(e) => handleImageError(e, '/user-default.jpg')}
                     />
                     <div className="avatar-ring"></div>
                   </div>
