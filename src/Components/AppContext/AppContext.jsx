@@ -214,17 +214,12 @@ const AppContext = ({ children }) => {
       const token = localStorage.getItem('authToken');
       
       if (token) {
-        // Check if session has expired due to inactivity
-        if (checkSessionExpiry()) {
-          setLoading(false);
-          return;
-        }
-        
         try {
           const response = await apiClient.getCurrentUser();
           setUser(response.user);
           setUserData(response.user);
           setSessionExpired(false);
+          // Only set timeout, don't check expiry on init to avoid immediate logout
           resetSessionTimeout();
         } catch (error) {
           console.error('Failed to get current user:', error);
@@ -239,30 +234,13 @@ const AppContext = ({ children }) => {
 
     initializeAuth();
 
-    // Add activity listeners to reset session timeout
-    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    
-    const handleActivity = () => {
-      if (user && !sessionExpired) {
-        resetSessionTimeout();
-      }
-    };
-
-    activityEvents.forEach(event => {
-      document.addEventListener(event, handleActivity, true);
-    });
-
     // Cleanup function
     return () => {
-      activityEvents.forEach(event => {
-        document.removeEventListener(event, handleActivity, true);
-      });
-      
       if (sessionTimeoutRef.current) {
         clearTimeout(sessionTimeoutRef.current);
       }
     };
-  }, [user, sessionExpired]);
+  }, []);
 
   // Remove the automatic redirect - let route protection handle it
   // useEffect(() => {

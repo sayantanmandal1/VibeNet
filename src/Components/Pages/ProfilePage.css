@@ -1,4 +1,4 @@
-/* ProfilePage.css - Professional Glassmorphic Black & White Design */
+ /* ProfilePage.css - Professional Glassmorphic Black & White Design */
 
 /* Global Variables */
 :root {
@@ -138,9 +138,9 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 200px;
-  background: var(--gradient-primary);
-  opacity: 0.8;
+  height: 120px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(51, 51, 51, 0.6) 100%);
+  opacity: 0.3;
 }
 
 .hero-background::before {
@@ -158,7 +158,7 @@
 .hero-content {
   position: relative;
   z-index: 2;
-  padding: 60px 40px 40px;
+  padding: 40px 40px 30px;
   display: flex;
   align-items: flex-end;
   gap: 40px;
@@ -224,7 +224,7 @@
 /* Profile Header Info */
 .profile-header-info {
   flex: 1;
-  color: white;
+  color: #1a1a1a;
   padding-bottom: 20px;
 }
 
@@ -236,15 +236,15 @@
   font-size: 48px;
   font-weight: 800;
   margin: 0 0 8px 0;
-  color: white;
+  color: #1a1a1a;
   letter-spacing: -0.02em;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
   line-height: 1.1;
 }
 
 .profile-username-new {
   font-size: 20px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #666666;
   margin: 0;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -275,27 +275,28 @@
 }
 
 .btn-edit-new {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .btn-edit-new:hover {
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--text-primary);
-  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-color: rgba(0, 0, 0, 0.8);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .btn-login-new {
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 .btn-login-new:hover {
   background: rgba(0, 0, 0, 0.8);
+  color: white;
   border-color: rgba(0, 0, 0, 0.8);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
