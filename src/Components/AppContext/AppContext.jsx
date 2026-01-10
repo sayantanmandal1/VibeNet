@@ -240,6 +240,7 @@ const AppContext = ({ children }) => {
         clearTimeout(sessionTimeoutRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Remove the automatic redirect - let route protection handle it

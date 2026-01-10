@@ -17,14 +17,12 @@ import {
   FiUser, 
   FiHeart, 
   FiMessageCircle, 
-  FiShare2,
   FiEdit3,
   FiUserPlus,
   FiLock,
   FiCamera,
   FiGlobe,
   FiStar,
-  FiAward,
   FiTrendingUp
 } from "react-icons/fi";
 import "./ProfilePage.css";
