@@ -32,7 +32,7 @@ import "./ProfilePage.css";
 const ProfilePage = () => {
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser, updateUserData } = useContext(AuthContext);
+  const { user: currentUser, updateUserData, sessionExpired, checkSessionExpiry } = useContext(AuthContext);
   
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -50,12 +50,18 @@ const ProfilePage = () => {
         setLoading(true);
         setError(null);
         
+        // Check session expiry before making API calls
+        const isSessionExpired = checkSessionExpiry();
+        if (isSessionExpired) {
+          setIsAnonymous(true);
+        }
+        
         const response = await apiClient.getUserProfileByUsername(username);
         setProfile(response.user);
         setPosts(response.posts || []);
         setIsOwnProfile(currentUser && response.user.id === currentUser.id);
         setCanViewPosts(response.canViewPosts || false);
-        setIsAnonymous(!!response.anonymousAccess);
+        setIsAnonymous(!!response.anonymousAccess || isSessionExpired);
         setRestrictedContent(response.restrictedContent || false);
         
       } catch (err) {
@@ -73,7 +79,7 @@ const ProfilePage = () => {
     if (username) {
       fetchProfile();
     }
-  }, [username, currentUser]);
+  }, [username, currentUser, checkSessionExpiry]);
 
   const handleFriendStatusChange = (newStatus) => {
     if (newStatus === 'friends') {
@@ -129,6 +135,20 @@ const ProfilePage = () => {
 
   const handleLoginRedirect = () => {
     navigate('/login', { state: { returnTo: `/profile/${username}` } });
+  };
+
+  const handleSmartBack = () => {
+    // Check if session has expired due to inactivity
+    const isSessionExpired = checkSessionExpiry();
+    
+    // Check if user is authenticated and session is valid
+    if (currentUser && !isAnonymous && !sessionExpired && !isSessionExpired) {
+      // User is logged in with valid session, go to home
+      navigate('/home');
+    } else {
+      // User is not logged in or session expired, go to landing page
+      navigate('/');
+    }
   };
 
   const formatDate = (dateString) => {
@@ -435,7 +455,7 @@ const ProfilePage = () => {
 
   return (
     <div className="profile-page-new">
-      <BackButton to="/" className="back-btn-new" />
+      <BackButton onClick={handleSmartBack} className="back-btn-new" />
       <div className="navbar-container">
         <Navbar />
       </div>
