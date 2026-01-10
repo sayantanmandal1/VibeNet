@@ -4,12 +4,9 @@ import Navbar from "../Navbar/Navbar";
 import RightSide from "../RightSidebar/RightSide";
 import Main from "../Main/Main";
 import Footer from "../Footer/Footer";
-import ProfileEditModal from "./ProfileEditModal";
 import NotificationSystem from "./NotificationSystem";
 import styled, { ThemeProvider, createGlobalStyle } from "styled-components";
 import { AuthContext } from "../AppContext/AppContext";
-import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
-import { db } from "../firebase/firebase";
 import { useNavigate } from "react-router-dom";
 import { FiSettings, FiUser } from "react-icons/fi";
 import { BiLogOut } from "react-icons/bi";
@@ -88,53 +85,11 @@ const FeedMain = styled.div`
   }
 `;
 
-const Fab = styled.button`
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  background: ${({ theme }) => theme.accent};
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  font-size: 2rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
-  cursor: pointer;
-  z-index: 1000;
-  transition: background 0.2s;
-  &:hover { background: #155ab6; }
-`;
-
 const Home = () => {
-  const [showEdit, setShowEdit] = useState(false);
   const [notification, setNotification] = useState(null);
-  const [profile, setProfile] = useState({
-    name: "John Doe",
-    bio: "Building the future, one line at a time.",
-    avatar: "/user-default.jpg",
-  });
   const { user } = useContext(AuthContext);
   const [showLogout, setShowLogout] = useState(false);
   const navigate = useNavigate();
-
-  const handleProfileSave = async (data) => {
-    setProfile(data);
-    setNotification({ type: "success", message: "Profile updated!" });
-    // Persist to Firestore
-    if (user?.uid) {
-      const q = query(collection(db, "users"), where("uid", "==", user.uid));
-      const docSnap = await getDocs(q);
-      const userRef = docSnap.docs[0]?.ref;
-      if (userRef) {
-        await updateDoc(userRef, {
-          name: data.name,
-          bio: data.bio,
-          image: data.avatar,
-        });
-      }
-    }
-  };
 
   const handleLogout = async () => {
     // signOutUser should be available from context
@@ -192,16 +147,6 @@ const Home = () => {
           </Sidebar>
         </FeedWrapper>
         <Footer />
-        <Fab onClick={() => setShowEdit(true)} title="Edit Profile">
-          <span role="img" aria-label="edit">✏️</span>
-        </Fab>
-        {showEdit && (
-          <ProfileEditModal
-            user={profile}
-            onClose={() => setShowEdit(false)}
-            onSave={handleProfileSave}
-          />
-        )}
         <NotificationSystem
           notification={notification}
           onClose={() => setNotification(null)}
