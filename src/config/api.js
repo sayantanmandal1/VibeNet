@@ -19,6 +19,7 @@ class ApiClient {
         ...this.getAuthHeader(),
         ...options.headers,
       },
+      credentials: 'include', // Important for CORS
       ...options,
     };
 
@@ -28,6 +29,7 @@ class ApiClient {
     }
 
     try {
+      console.log(`Making API request to: ${url}`);
       const response = await fetch(url, config);
       
       if (!response.ok) {
@@ -57,11 +59,23 @@ class ApiClient {
       }
 
       const responseData = await response.json();
+      console.log(`API request successful: ${url}`);
       return responseData;
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // If it's a network error, provide more helpful message
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('Network error. Please check if the server is running and try again.');
+      }
+      
       throw error;
     }
+  }
+
+  // Test CORS connection
+  async testCors() {
+    return this.request('/test-cors');
   }
 
   // Auth methods
