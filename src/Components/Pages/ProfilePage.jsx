@@ -44,34 +44,55 @@ const ProfilePage = () => {
   const [restrictedContent, setRestrictedContent] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchProfile = async () => {
       try {
         setLoading(true);
         setError(null);
         
         const response = await apiClient.getUserProfileByUsername(username);
-        setProfile(response.user);
-        setPosts(response.posts || []);
-        setIsOwnProfile(currentUser && response.user.id === currentUser.id);
-        setCanViewPosts(response.canViewPosts || false);
-        setIsAnonymous(!!response.anonymousAccess);
-        setRestrictedContent(response.restrictedContent || false);
+        
+        if (isMounted) {
+          setProfile(response.user);
+          setPosts(response.posts || []);
+          setIsOwnProfile(currentUser && response.user.id === currentUser.id);
+          setCanViewPosts(response.canViewPosts || false);
+          setIsAnonymous(!!response.anonymousAccess);
+          setRestrictedContent(response.restrictedContent || false);
+        }
         
       } catch (err) {
         console.error('Error fetching profile:', err);
-        if (err.message.includes('404') || err.message.includes('not found')) {
-          setError('Profile not found');
-        } else {
-          setError(err.message);
+        if (isMounted) {
+          if (err.message.includes('404') || err.message.includes('not found')) {
+            setError('Profile not found');
+          } else {
+            setError(err.message);
+          }
         }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     if (username) {
-      fetchProfile();
+      // Add a small delay to prevent rapid requests
+      const timeoutId = setTimeout(() => {
+        fetchProfile();
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        isMounted = false;
+      };
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [username, currentUser]);
 
   const handleFriendStatusChange = (newStatus) => {

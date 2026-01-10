@@ -146,27 +146,37 @@ const AppContext = ({ children }) => {
   };
 
   useEffect(() => {
+    let isMounted = true;
+    
     const initializeAuth = async () => {
       const token = localStorage.getItem('authToken');
       
       if (token) {
         try {
           const response = await apiClient.getCurrentUser();
-          setUser(response.user);
-          setUserData(response.user);
+          if (isMounted) {
+            setUser(response.user);
+            setUserData(response.user);
+          }
         } catch (error) {
           console.error('Failed to get current user:', error);
           // Only remove token if it's actually invalid (401 error)
-          if (error.message.includes('Authentication required')) {
+          if (error.message.includes('Authentication required') && isMounted) {
             localStorage.removeItem('authToken');
           }
         }
       }
       
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     };
 
     initializeAuth();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Remove the automatic redirect - let route protection handle it

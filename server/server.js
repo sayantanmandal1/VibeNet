@@ -85,10 +85,18 @@ app.use(helmet({
 // Rate limiting - AFTER CORS
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // Increased from 100 to 1000 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting for certain routes during development
+  skip: (req) => {
+    if (process.env.NODE_ENV !== 'production') {
+      // Skip rate limiting for auth and profile routes in development
+      return req.path.includes('/api/auth') || req.path.includes('/api/users');
+    }
+    return false;
+  }
 });
 app.use(limiter);
 

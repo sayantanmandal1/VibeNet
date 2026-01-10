@@ -3,6 +3,8 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api
 class ApiClient {
   constructor() {
     this.baseURL = API_BASE_URL;
+    this.requestCache = new Map();
+    this.cacheTimeout = 5000; // 5 seconds cache
   }
 
   getAuthHeader() {
@@ -10,8 +12,22 @@ class ApiClient {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
+  getCacheKey(url, options) {
+    return `${url}_${JSON.stringify(options)}`;
+  }
+
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    const cacheKey = this.getCacheKey(url, options);
+    
+    // Check cache for GET requests
+    if (!options.method || options.method === 'GET') {
+      const cached = this.requestCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+        console.log(`Using cached response for: ${url}`);
+        return cached.data;
+      }
+    }
     
     const config = {
       headers: {
@@ -41,6 +57,11 @@ class ApiClient {
           throw new Error('Authentication required. Please log in again.');
         }
         
+        if (response.status === 429) {
+          // Rate limited - provide helpful message
+          throw new Error('Too many requests. Please wait a moment and try again.');
+        }
+        
         if (response.status === 404) {
           throw new Error(errorData.error || 'Resource not found');
         }
@@ -58,6 +79,15 @@ class ApiClient {
 
       const responseData = await response.json();
       console.log(`API request successful: ${url}`);
+      
+      // Cache GET responses
+      if (!options.method || options.method === 'GET') {
+        this.requestCache.set(cacheKey, {
+          data: responseData,
+          timestamp: Date.now()
+        });
+      }
+      
       return responseData;
     } catch (error) {
       console.error('API request failed:', error);
