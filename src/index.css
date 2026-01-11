@@ -17,14 +17,15 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.5;
-  color: var(--text-color);
-  background: transparent;
+  color: #000000 !important;
+  background: #ffffff !important;
   overflow-x: hidden;
   min-height: 100vh;
 }
 
 #root {
   min-height: 100vh;
+  color: #000000 !important;
 }
 
 /* Global input styling to ensure text is always visible */
@@ -48,6 +49,29 @@ select {
 .login-page input,
 .register-page input,
 .registration-wizard input {
+  color: #000000 !important;
+}
+
+/* Ensure all text elements are black */
+h1, h2, h3, h4, h5, h6, p, span, div, a, li, td, th {
+  color: #000000 !important;
+}
+
+/* Ensure main containers have white backgrounds */
+.main-container,
+.profile-page-new,
+.profile-view,
+.profile-edit,
+.home-container,
+.feed-container {
+  background: #ffffff !important;
+}
+
+/* Override text colors for main content areas */
+.main-container *:not(button):not(.notification):not(.post-submit):not(.action-button):not(.btn-primary):not(.btn-edit-new):not(.btn-login-new):not(.btn-primary-new),
+.profile-page-new *:not(button):not(.notification):not(.post-submit):not(.action-button):not(.btn-primary):not(.btn-edit-new):not(.btn-login-new):not(.btn-primary-new),
+.profile-view *:not(button):not(.notification):not(.post-submit):not(.action-button):not(.btn-primary):not(.btn-edit-new):not(.btn-login-new):not(.btn-primary-new),
+.profile-edit *:not(button):not(.notification):not(.post-submit):not(.action-button):not(.btn-primary):not(.btn-edit-new):not(.btn-login-new):not(.btn-primary-new) {
   color: #000000 !important;
 }
 

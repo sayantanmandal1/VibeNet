@@ -11,10 +11,10 @@ import { useNavigate } from "react-router-dom";
 import { FiSettings, FiUser } from "react-icons/fi";
 import { BiLogOut } from "react-icons/bi";
 
-const darkTheme = {
-  background: "#18191a",
-  text: "#f5f6fa",
-  card: "#242526",
+const lightTheme = {
+  background: "#ffffff",
+  text: "#000000",
+  card: "#ffffff",
   accent: "#1a73e8",
 };
 
@@ -29,10 +29,11 @@ const GlobalStyle = createGlobalStyle`
 const PageContainer = styled.div`
   min-height: 100vh;
   width: 100vw;
-  background: linear-gradient(120deg, #f5f6fa 0%, #e3eafc 100%);
+  background: #ffffff !important;
   display: flex;
   flex-direction: column;
   align-items: center;
+  color: #000000 !important;
 `;
 
 const FeedWrapper = styled.div`
@@ -61,6 +62,7 @@ const Sidebar = styled.div`
   box-shadow: 0 2px 16px rgba(26,115,232,0.06);
   padding: 24px 18px;
   margin-top: 24px;
+  color: #000000 !important;
   @media (max-width: 1200px) {
     margin: 0 auto 24px auto;
     width: 90vw;
@@ -78,6 +80,7 @@ const FeedMain = styled.div`
   box-shadow: 0 4px 32px rgba(0,0,0,0.06);
   padding: 32px 24px 24px 24px;
   margin-top: 24px;
+  color: #000000 !important;
   @media (max-width: 1200px) {
     width: 95vw;
     padding: 16px 4px;
@@ -100,7 +103,7 @@ const Home = () => {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={lightTheme}>
       <GlobalStyle />
       <PageContainer>
         <Navbar />

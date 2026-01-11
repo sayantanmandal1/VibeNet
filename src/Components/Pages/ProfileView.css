@@ -1,6 +1,6 @@
 .profile-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
 }
@@ -53,9 +53,9 @@
 }
 
 .profile-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f8f9fa;
   padding: 40px 30px;
-  color: white;
+  color: #000000;
   display: flex;
   align-items: center;
   gap: 30px;
