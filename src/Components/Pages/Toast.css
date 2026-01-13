@@ -1,34 +1,85 @@
+/* ============================================
+   TOAST NOTIFICATION - GLASSMORPHISM DESIGN
+   ============================================ */
+
 .toast {
   position: fixed;
-  top: 2.5rem;
+  top: 24px;
   left: 50%;
   transform: translateX(-50%);
-  min-width: 220px;
-  max-width: 90vw;
-  background: rgba(30, 30, 30, 0.85);
-  color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
-  padding: 0.7rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  font-size: 1.08rem;
-  z-index: 9999;
-  animation: toastIn 0.4s cubic-bezier(0.4,0,0.2,1);
-  backdrop-filter: blur(8px);
+  gap: 12px;
+  padding: 16px 24px;
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 99999;
+  animation: toastSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
-.toast-icon {
-  font-size: 1.3em;
-  margin-right: 0.2em;
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
-.toast-success {
-  background: rgba(40, 180, 99, 0.92);
-}
+
 .toast-error {
-  background: rgba(255, 23, 68, 0.92);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
 }
-@keyframes toastIn {
-  0% { opacity: 0; transform: translate(-50%, -20px) scale(0.98); }
-  100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+.toast-success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+.toast-warning {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+}
+
+.toast-info {
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: #c4b5fd;
+}
+
+.toast-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .toast {
+    top: 16px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+  
+  .toast-icon {
+    font-size: 1.1rem;
+  }
+  
+  .toast-message {
+    font-size: 0.9rem;
+  }
 }

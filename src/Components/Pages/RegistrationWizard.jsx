@@ -1,61 +1,44 @@
 import React, { useState, useContext, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AuthContext } from '../AppContext/AppContext';
 import UsernameSelector from './UsernameSelector';
-import EmailInput from '../Common/EmailInput';
-import Button from './Button';
 import Toast from './Toast';
-import BackButton from '../Common/BackButton';
-import PasswordInput from '../Common/PasswordInput';
 import { countryCodes, getPhoneCodeByCountry } from '../../utils/countryCodes';
+import { FiArrowLeft, FiArrowRight, FiCheck, FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiLoader, FiCamera, FiMapPin, FiPhone, FiCalendar } from 'react-icons/fi';
+import { FcGoogle } from 'react-icons/fc';
 import './RegistrationWizard.css';
-import './InputOverrides.css';
-import ParticlesBackground from '../Background/ParticlesBackground';
 
 const RegistrationWizard = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [toast, setToast] = useState({ message: '', type: 'error' });
   const { registerWithEmailAndPassword, signInWithGoogle } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get pre-filled email from location state (for Google login redirects)
   const prefilledEmail = location.state?.email || '';
 
-  // Form data state
   const [formData, setFormData] = useState({
-    // Step 1: Basic Info
     name: '',
     email: prefilledEmail,
     password: '',
     confirmPassword: '',
-    
-    // Step 2: Username Selection
     username: '',
-    
-    // Step 3: Personal Info
     bio: '',
     phoneNumber: '',
-    country: '', // This will store country code (e.g., 'US')
-    countryName: '', // This will store country name for display
-    
-    // Step 4: Profile Completion
+    country: '',
+    countryName: '',
+    location: '',
     dateOfBirth: '',
     gender: '',
-    profileImage: null // Add profile image field
+    profileImage: null
   });
 
-  // Form validation errors
   const [errors, setErrors] = useState({});
-  
-  // Email validation state
-  const [emailValidation, setEmailValidation] = useState({
-    isValid: false,
-    message: ''
-  });
+  const [emailValidation, setEmailValidation] = useState({ isValid: false, message: '' });
 
-  // Email validation callback - memoized to prevent re-renders
   const handleEmailValidation = useCallback((isValid, message) => {
     setEmailValidation({ isValid, message });
     if (!isValid && message) {
@@ -65,7 +48,6 @@ const RegistrationWizard = () => {
     }
   }, []);
 
-  // Username validation callback - memoized to prevent re-renders
   const handleUsernameValidation = useCallback((isValid, message) => {
     if (!isValid && message) {
       setErrors(prev => ({ ...prev, username: message }));
@@ -82,19 +64,13 @@ const RegistrationWizard = () => {
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       
-      // If country is changed, automatically update phone number with country code and location
       if (field === 'country') {
         const selectedCountry = countryCodes.find(c => c.code === value);
         if (selectedCountry) {
           newData.countryName = selectedCountry.name;
-          
-          // Auto-extract location from country name
           newData.location = selectedCountry.name;
-          
-          // Auto-add country code to phone number if it's empty or doesn't have the code
           const phoneCode = selectedCountry.phoneCode;
           if (!newData.phoneNumber || !newData.phoneNumber.startsWith(phoneCode)) {
-            // Extract local number if there's an existing country code
             const localNumber = newData.phoneNumber.replace(/^\+?\d{1,4}\s*/, '');
             newData.phoneNumber = localNumber ? `${phoneCode} ${localNumber}` : phoneCode;
           }
@@ -104,182 +80,95 @@ const RegistrationWizard = () => {
       return newData;
     });
     
-    // Clear error for this field
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
   const validateStep1 = () => {
     const stepErrors = {};
-    
-    if (!formData.name.trim()) {
-      stepErrors.name = 'Name is required';
-    }
-    
-    if (!formData.email.trim()) {
-      stepErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      stepErrors.email = 'Invalid email address';
-    } else if (!emailValidation.isValid) {
-      stepErrors.email = emailValidation.message || 'Please verify email availability';
-    }
-    
-    if (!formData.password) {
-      stepErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      stepErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    if (!formData.confirmPassword) {
-      stepErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      stepErrors.confirmPassword = 'Passwords do not match';
-    }
-    
+    if (!formData.name.trim()) stepErrors.name = 'Name is required';
+    if (!formData.email.trim()) stepErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) stepErrors.email = 'Invalid email address';
+    if (!formData.password) stepErrors.password = 'Password is required';
+    else if (formData.password.length < 6) stepErrors.password = 'Password must be at least 6 characters';
+    if (!formData.confirmPassword) stepErrors.confirmPassword = 'Please confirm your password';
+    else if (formData.password !== formData.confirmPassword) stepErrors.confirmPassword = 'Passwords do not match';
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
 
   const validateStep2 = () => {
     const stepErrors = {};
-    
-    if (!formData.username.trim()) {
-      stepErrors.username = 'Username is required';
-    } else if (formData.username.length < 3 || formData.username.length > 30) {
-      stepErrors.username = 'Username must be 3-30 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      stepErrors.username = 'Username can only contain letters, numbers, and underscores';
-    }
-    
+    if (!formData.username.trim()) stepErrors.username = 'Username is required';
+    else if (formData.username.length < 3 || formData.username.length > 30) stepErrors.username = 'Username must be 3-30 characters';
+    else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) stepErrors.username = 'Username can only contain letters, numbers, and underscores';
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
 
   const validateStep3 = () => {
     const stepErrors = {};
-    
-    if (formData.bio && formData.bio.length > 500) {
-      stepErrors.bio = 'Bio must be less than 500 characters';
-    }
-    
-    if (formData.phoneNumber && !/^[+]?[\d\s\-()]+$/.test(formData.phoneNumber)) {
-      stepErrors.phoneNumber = 'Invalid phone number format';
-    }
-    
-    if (!formData.country.trim()) {
-      stepErrors.country = 'Country is required';
-    }
-    
+    if (formData.bio && formData.bio.length > 500) stepErrors.bio = 'Bio must be less than 500 characters';
+    if (!formData.country.trim()) stepErrors.country = 'Country is required';
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
 
   const validateStep4 = () => {
     const stepErrors = {};
-    
-    if (!formData.dateOfBirth) {
-      stepErrors.dateOfBirth = 'Date of birth is required';
-    } else {
+    if (!formData.dateOfBirth) stepErrors.dateOfBirth = 'Date of birth is required';
+    else {
       const birthDate = new Date(formData.dateOfBirth);
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
-      if (age < 13) {
-        stepErrors.dateOfBirth = 'You must be at least 13 years old to register';
-      }
+      if (age < 13) stepErrors.dateOfBirth = 'You must be at least 13 years old';
     }
-    
-    if (!formData.gender.trim()) {
-      stepErrors.gender = 'Gender is required';
-    }
-    
+    if (!formData.gender.trim()) stepErrors.gender = 'Gender is required';
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
 
   const handleNext = () => {
     let isValid = false;
-    
     switch (currentStep) {
-      case 1:
-        isValid = validateStep1();
-        break;
-      case 2:
-        isValid = validateStep2();
-        break;
-      case 3:
-        isValid = validateStep3();
-        break;
-      case 4:
-        isValid = validateStep4();
-        break;
-      default:
-        isValid = true;
+      case 1: isValid = validateStep1(); break;
+      case 2: isValid = validateStep2(); break;
+      case 3: isValid = validateStep3(); break;
+      case 4: isValid = validateStep4(); break;
+      default: isValid = true;
     }
     
     if (isValid) {
-      if (Object.keys(errors).length > 0) {
-        const firstError = Object.values(errors)[0];
-        showToast(firstError);
-        return;
-      }
-      
-      if (currentStep < 4) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        handleSubmit();
-      }
+      if (currentStep < 4) setCurrentStep(currentStep + 1);
+      else handleSubmit();
     } else {
       const firstError = Object.values(errors)[0];
-      showToast(firstError);
+      if (firstError) showToast(firstError);
     }
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const handleSubmit = async () => {
-    if (!validateStep4()) {
-      const firstError = Object.values(errors)[0];
-      showToast(firstError);
-      return;
-    }
+    if (!validateStep4()) return;
 
     setLoading(true);
     try {
-      // Prepare registration data
-      const registrationData = {
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-        username: formData.username.trim(),
-        bio: formData.bio.trim() || undefined,
-        phoneNumber: formData.phoneNumber.trim() || undefined,
-        location: formData.location.trim() || formData.countryName || undefined, // Use extracted location from country
-        country: formData.country.trim(),
-        dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender.trim(),
-        profileImage: formData.profileImage // Include profile image
-      };
-
       await registerWithEmailAndPassword(
-        registrationData.name,
-        registrationData.email,
-        registrationData.password,
-        registrationData.username,
-        registrationData.bio,
-        registrationData.phoneNumber,
-        registrationData.location, // Pass location
-        registrationData.country,
-        registrationData.dateOfBirth,
-        registrationData.gender,
-        registrationData.profileImage
+        formData.name.trim(),
+        formData.email.trim(),
+        formData.password,
+        formData.username.trim(),
+        formData.bio.trim() || undefined,
+        formData.phoneNumber.trim() || undefined,
+        formData.location.trim() || formData.countryName || undefined,
+        formData.country.trim(),
+        formData.dateOfBirth,
+        formData.gender.trim(),
+        formData.profileImage
       );
       
       showToast('Registration successful! Redirecting...', 'success');
@@ -302,307 +191,306 @@ const RegistrationWizard = () => {
     }
   };
 
-  const renderStep1 = () => (
-    <div className="wizard-step">
-      <h3 className="step-title">Basic Information</h3>
-      <p className="step-description">Let's start with your basic details</p>
-      
-      <div className="form-group">
-        <input
-          type="text"
-          className={`form-input ${errors.name ? 'error' : ''}`}
-          placeholder="Full Name *"
-          value={formData.name}
-          onChange={(e) => updateFormData('name', e.target.value)}
-          autoComplete="name"
-        />
-        {errors.name && <span className="error-text">{errors.name}</span>}
-      </div>
-
-      <div className="form-group">
-        <EmailInput
-          value={formData.email}
-          onChange={(e) => updateFormData('email', e.target.value)}
-          error={errors.email}
-          onValidationChange={handleEmailValidation}
-          prefilledEmail={prefilledEmail}
-        />
-        {errors.email && <span className="error-text">{errors.email}</span>}
-      </div>
-
-      <div className="form-group">
-        <PasswordInput
-          placeholder="Password *"
-          name="password"
-          value={formData.password}
-          onChange={(e) => updateFormData('password', e.target.value)}
-          autoComplete="new-password"
-          className={errors.password ? 'error' : ''}
-        />
-        {errors.password && <span className="error-text">{errors.password}</span>}
-      </div>
-
-      <div className="form-group">
-        <PasswordInput
-          placeholder="Confirm Password *"
-          name="confirmPassword"
-          value={formData.confirmPassword}
-          onChange={(e) => updateFormData('confirmPassword', e.target.value)}
-          autoComplete="new-password"
-          className={errors.confirmPassword ? 'error' : ''}
-        />
-        {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
-      </div>
-    </div>
-  );
-
-  const renderStep2 = () => (
-    <div className="wizard-step">
-      <h3 className="step-title">Choose Your Username</h3>
-      <p className="step-description">Pick a unique username for your profile</p>
-      
-      <UsernameSelector
-        value={formData.username}
-        onChange={(username) => updateFormData('username', username)}
-        error={errors.username}
-        onValidationChange={handleUsernameValidation}
-      />
-    </div>
-  );
-
-  const renderStep3 = () => (
-    <div className="wizard-step">
-      <h3 className="step-title">Personal Information</h3>
-      <p className="step-description">Tell us more about yourself</p>
-      
-      <div className="form-group">
-        <textarea
-          className={`form-input form-textarea ${errors.bio ? 'error' : ''}`}
-          placeholder="Tell us about yourself (optional)"
-          value={formData.bio}
-          onChange={(e) => updateFormData('bio', e.target.value)}
-          rows={4}
-          maxLength={500}
-        />
-        <div className="char-count">{formData.bio.length}/500</div>
-        {errors.bio && <span className="error-text">{errors.bio}</span>}
-      </div>
-
-      <div className="form-group">
-        <select
-          className={`form-input ${errors.country ? 'error' : ''}`}
-          value={formData.country}
-          onChange={(e) => updateFormData('country', e.target.value)}
-        >
-          <option value="">Select your country *</option>
-          {countryCodes.map((country) => (
-            <option key={country.code} value={country.code}>
-              {country.flag} {country.name}
-            </option>
-          ))}
-        </select>
-        {errors.country && <span className="error-text">{errors.country}</span>}
-      </div>
-
-      <div className="form-group">
-        <div className="phone-input-wrapper">
-          <div className="country-code-display">
-            {formData.country ? getPhoneCodeByCountry(formData.country) : '+1'}
-          </div>
-          <input
-            type="tel"
-            className={`form-input phone-input ${errors.phoneNumber ? 'error' : ''}`}
-            placeholder="Phone Number (optional)"
-            value={formData.phoneNumber}
-            onChange={(e) => updateFormData('phoneNumber', e.target.value)}
-            autoComplete="tel"
-          />
-        </div>
-        {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
-      </div>
-    </div>
-  );
-
-  const renderStep4 = () => (
-    <div className="wizard-step">
-      <h3 className="step-title">Complete Your Profile</h3>
-      <p className="step-description">Final details to complete your registration</p>
-      
-      {/* Profile Picture Upload */}
-      <div className="form-group">
-        <label className="form-label">Profile Picture (Optional)</label>
-        <div className="profile-image-upload">
-          <div className="profile-image-preview">
-            <img
-              src={formData.profileImage ? URL.createObjectURL(formData.profileImage) : "/user-default.jpg"}
-              alt="Profile preview"
-              className="profile-preview-img"
-            />
-          </div>
-          <div className="profile-upload-controls">
-            <input
-              type="file"
-              id="profileImage"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  updateFormData('profileImage', file);
-                }
-              }}
-              style={{ display: 'none' }}
-            />
-            <label htmlFor="profileImage" className="upload-btn">
-              Choose Photo
-            </label>
-            {formData.profileImage && (
-              <button
-                type="button"
-                className="remove-btn"
-                onClick={() => updateFormData('profileImage', null)}
-              >
-                Remove
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <div className="form-group">
-        <input
-          type="date"
-          className={`form-input ${errors.dateOfBirth ? 'error' : ''}`}
-          value={formData.dateOfBirth}
-          onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
-          max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
-        />
-        <label className="form-label">Date of Birth *</label>
-        {errors.dateOfBirth && <span className="error-text">{errors.dateOfBirth}</span>}
-      </div>
-
-      <div className="form-group">
-        <select
-          className={`form-input ${errors.gender ? 'error' : ''}`}
-          value={formData.gender}
-          onChange={(e) => updateFormData('gender', e.target.value)}
-        >
-          <option value="">Select your gender *</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="non-binary">Non-binary</option>
-          <option value="prefer-not-to-say">Prefer not to say</option>
-          <option value="other">Other</option>
-        </select>
-        {errors.gender && <span className="error-text">{errors.gender}</span>}
-      </div>
-    </div>
-  );
+  const steps = [
+    { num: 1, label: 'Account', icon: FiUser },
+    { num: 2, label: 'Username', icon: FiMail },
+    { num: 3, label: 'Details', icon: FiMapPin },
+    { num: 4, label: 'Complete', icon: FiCheck }
+  ];
 
   return (
-    <>
-      <ParticlesBackground />
-      <BackButton />
-      <div className="registration-wizard">
-        <Toast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast({ message: '', type: 'error' })} 
-        />
-        
-        <div className="wizard-container glass-card">
-          {/* Progress indicator */}
-          <div className="wizard-progress">
+    <div className="register-page">
+      {/* Animated Background */}
+      <div className="auth-bg-gradient"></div>
+      <div className="auth-bg-orbs">
+        <div className="auth-orb auth-orb-1"></div>
+        <div className="auth-orb auth-orb-2"></div>
+        <div className="auth-orb auth-orb-3"></div>
+      </div>
+      <div className="auth-bg-grid"></div>
+
+      {/* Back Button */}
+      <button className="back-btn" onClick={() => navigate('/')}>
+        <FiArrowLeft size={20} />
+        <span>Back</span>
+      </button>
+
+      <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'error' })} />
+
+      <div className="register-container">
+        <div className="register-card glass-card">
+          {/* Logo */}
+          <div className="auth-logo">
+            <span className="logo-wave">🌊</span>
+            <span className="logo-text">VibeNet</span>
+          </div>
+
+          {/* Progress Steps */}
+          <div className="progress-container">
             <div className="progress-steps">
-              {[1, 2, 3, 4].map((step) => (
-                <div
-                  key={step}
-                  className={`progress-step ${currentStep >= step ? 'active' : ''} ${currentStep > step ? 'completed' : ''}`}
-                >
-                  <div className="step-number">{step}</div>
-                  <div className="step-label">
-                    {step === 1 && 'Basic Info'}
-                    {step === 2 && 'Username'}
-                    {step === 3 && 'Personal'}
-                    {step === 4 && 'Complete'}
+              {steps.map((step, index) => (
+                <React.Fragment key={step.num}>
+                  <div className={`step ${currentStep >= step.num ? 'active' : ''} ${currentStep > step.num ? 'completed' : ''}`}>
+                    <div className="step-circle">
+                      {currentStep > step.num ? <FiCheck size={18} /> : <step.icon size={18} />}
+                    </div>
+                    <span className="step-label">{step.label}</span>
                   </div>
-                </div>
+                  {index < steps.length - 1 && (
+                    <div className={`step-line ${currentStep > step.num ? 'active' : ''}`}></div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
             <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${(currentStep / 4) * 100}%` }}
-              />
+              <div className="progress-fill" style={{ width: `${(currentStep / 4) * 100}%` }}></div>
             </div>
           </div>
 
-          {/* Step content */}
-          <div className="wizard-content">
-            {currentStep === 1 && renderStep1()}
-            {currentStep === 2 && renderStep2()}
-            {currentStep === 3 && renderStep3()}
-            {currentStep === 4 && renderStep4()}
+          {/* Step Content */}
+          <div className="step-content">
+            {/* Step 1: Account Info */}
+            {currentStep === 1 && (
+              <div className="step-panel">
+                <h2 className="step-title">Create Your Account</h2>
+                <p className="step-subtitle">Let's start with your basic information</p>
+
+                <div className="form-fields">
+                  <div className="input-group">
+                    <div className="input-icon"><FiUser size={20} /></div>
+                    <input
+                      type="text"
+                      className={`register-input ${errors.name ? 'error' : ''}`}
+                      placeholder="Full Name"
+                      value={formData.name}
+                      onChange={(e) => updateFormData('name', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <div className="input-icon"><FiMail size={20} /></div>
+                    <input
+                      type="email"
+                      className={`register-input ${errors.email ? 'error' : ''}`}
+                      placeholder="Email Address"
+                      value={formData.email}
+                      onChange={(e) => updateFormData('email', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <div className="input-icon"><FiLock size={20} /></div>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className={`register-input ${errors.password ? 'error' : ''}`}
+                      placeholder="Password"
+                      value={formData.password}
+                      onChange={(e) => updateFormData('password', e.target.value)}
+                    />
+                    <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                    </button>
+                  </div>
+
+                  <div className="input-group">
+                    <div className="input-icon"><FiLock size={20} /></div>
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      className={`register-input ${errors.confirmPassword ? 'error' : ''}`}
+                      placeholder="Confirm Password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => updateFormData('confirmPassword', e.target.value)}
+                    />
+                    <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                      {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Username */}
+            {currentStep === 2 && (
+              <div className="step-panel">
+                <h2 className="step-title">Choose Your Username</h2>
+                <p className="step-subtitle">Pick a unique username for your profile</p>
+
+                <div className="form-fields">
+                  <UsernameSelector
+                    value={formData.username}
+                    onChange={(username) => updateFormData('username', username)}
+                    error={errors.username}
+                    onValidationChange={handleUsernameValidation}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Personal Details */}
+            {currentStep === 3 && (
+              <div className="step-panel">
+                <h2 className="step-title">Personal Details</h2>
+                <p className="step-subtitle">Tell us a bit more about yourself</p>
+
+                <div className="form-fields">
+                  <div className="input-group textarea-group">
+                    <textarea
+                      className="register-textarea"
+                      placeholder="Write a short bio (optional)"
+                      value={formData.bio}
+                      onChange={(e) => updateFormData('bio', e.target.value)}
+                      rows={3}
+                      maxLength={500}
+                    />
+                    <span className="char-count">{formData.bio.length}/500</span>
+                  </div>
+
+                  <div className="input-group">
+                    <div className="input-icon"><FiMapPin size={20} /></div>
+                    <select
+                      className={`register-select ${errors.country ? 'error' : ''}`}
+                      value={formData.country}
+                      onChange={(e) => updateFormData('country', e.target.value)}
+                    >
+                      <option value="">Select your country</option>
+                      {countryCodes.map((country) => (
+                        <option key={country.code} value={country.code}>
+                          {country.flag} {country.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="input-group">
+                    <div className="input-icon"><FiPhone size={20} /></div>
+                    <div className="phone-code">{formData.country ? getPhoneCodeByCountry(formData.country) : '+1'}</div>
+                    <input
+                      type="tel"
+                      className="register-input phone-input"
+                      placeholder="Phone Number (optional)"
+                      value={formData.phoneNumber}
+                      onChange={(e) => updateFormData('phoneNumber', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Complete Profile */}
+            {currentStep === 4 && (
+              <div className="step-panel">
+                <h2 className="step-title">Complete Your Profile</h2>
+                <p className="step-subtitle">Final details to get you started</p>
+
+                <div className="form-fields">
+                  {/* Profile Image Upload */}
+                  <div className="profile-upload">
+                    <div className="profile-preview">
+                      <img
+                        src={formData.profileImage ? URL.createObjectURL(formData.profileImage) : "/user-default.jpg"}
+                        alt="Profile"
+                      />
+                      <label className="upload-overlay">
+                        <FiCamera size={24} />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) updateFormData('profileImage', file);
+                          }}
+                          hidden
+                        />
+                      </label>
+                    </div>
+                    <span className="upload-hint">Click to upload photo</span>
+                  </div>
+
+                  <div className="input-group">
+                    <div className="input-icon"><FiCalendar size={20} /></div>
+                    <input
+                      type="date"
+                      className={`register-input ${errors.dateOfBirth ? 'error' : ''}`}
+                      value={formData.dateOfBirth}
+                      onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
+                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <div className="input-icon"><FiUser size={20} /></div>
+                    <select
+                      className={`register-select ${errors.gender ? 'error' : ''}`}
+                      value={formData.gender}
+                      onChange={(e) => updateFormData('gender', e.target.value)}
+                    >
+                      <option value="">Select your gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="non-binary">Non-binary</option>
+                      <option value="prefer-not-to-say">Prefer not to say</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Navigation buttons */}
-          <div className="wizard-navigation">
+          {/* Navigation Buttons */}
+          <div className="nav-buttons">
             {currentStep > 1 && (
-              <Button
-                label="Previous"
-                onClick={handlePrevious}
-                className="wizard-btn wizard-btn-secondary"
-                disabled={loading}
-              />
+              <button className="nav-btn secondary" onClick={handlePrevious} disabled={loading}>
+                <FiArrowLeft size={18} />
+                <span>Previous</span>
+              </button>
             )}
             
-            <Button
-              label={
-                loading 
-                  ? 'Processing...' 
-                  : currentStep === 4 
-                    ? 'Create Account' 
-                    : 'Next'
-              }
+            <button
+              className={`nav-btn primary ${loading ? 'loading' : ''}`}
               onClick={handleNext}
-              className="wizard-btn wizard-btn-primary"
               disabled={loading}
-            />
+            >
+              {loading ? (
+                <>
+                  <FiLoader className="spin" size={18} />
+                  <span>Processing...</span>
+                </>
+              ) : currentStep === 4 ? (
+                <>
+                  <span>Create Account</span>
+                  <FiCheck size={18} />
+                </>
+              ) : (
+                <>
+                  <span>Continue</span>
+                  <FiArrowRight size={18} />
+                </>
+              )}
+            </button>
           </div>
 
-          {/* Google signup option (only on first step) */}
+          {/* Google Sign Up (Step 1 only) */}
           {currentStep === 1 && (
             <>
-              <div className="wizard-divider">
-                <span>or</span>
+              <div className="auth-divider">
+                <span>or continue with</span>
               </div>
               
-              <button
-                type="button"
-                className="google-signup-btn"
-                onClick={handleGoogleSignUp}
-                disabled={loading}
-              >
-                <svg width="22" height="22" viewBox="0 0 48 48">
-                  <g>
-                    <path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.19 3.22l6.85-6.85C36.68 2.09 30.7 0 24 0 14.82 0 6.71 5.08 2.69 12.44l7.98 6.2C12.13 13.13 17.62 9.5 24 9.5z"/>
-                    <path fill="#34A853" d="M46.1 24.55c0-1.64-.15-3.22-.42-4.74H24v9.01h12.42c-.54 2.9-2.18 5.36-4.65 7.01l7.19 5.59C43.93 37.09 46.1 31.3 46.1 24.55z"/>
-                    <path fill="#FBBC05" d="M10.67 28.64c-1.01-2.9-1.01-6.04 0-8.94l-7.98-6.2C.99 17.68 0 20.74 0 24c0 3.26.99 6.32 2.69 9.5l7.98-6.2z"/>
-                    <path fill="#EA4335" d="M24 48c6.7 0 12.68-2.21 16.98-6.01l-7.19-5.59c-2.01 1.35-4.59 2.15-7.79 2.15-6.38 0-11.87-3.63-14.33-8.94l-7.98 6.2C6.71 42.92 14.82 48 24 48z"/>
-                    <path fill="none" d="M0 0h48v48H0z"/>
-                  </g>
-                </svg>
-                Sign up with Google
+              <button className="google-btn" onClick={handleGoogleSignUp} disabled={loading}>
+                <FcGoogle size={24} />
+                <span>Google</span>
               </button>
             </>
           )}
 
-          {/* Login link */}
-          <div className="wizard-footer">
-            <p>Already have an account? <a href="/login" className="auth-link">Sign in</a></p>
+          {/* Login Link */}
+          <div className="auth-footer">
+            <p>Already have an account? <Link to="/login">Sign in</Link></p>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
