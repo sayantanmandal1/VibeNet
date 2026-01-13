@@ -1,8 +1,8 @@
 /* ============================================
-   LOGIN PAGE - COMPLETE STYLES
+   RESET PAGE - DARK GLASSMORPHISM STYLES
    ============================================ */
 
-.login-page-container {
+.reset-page-container {
   min-height: 100vh;
   width: 100%;
   display: flex;
@@ -15,7 +15,7 @@
 }
 
 /* Background Orbs */
-.login-bg {
+.reset-bg {
   position: fixed;
   top: 0;
   left: 0;
@@ -25,57 +25,57 @@
   z-index: 0;
 }
 
-.login-orb {
+.reset-orb {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
   opacity: 0.6;
 }
 
-.login-orb-1 {
+.reset-orb-1 {
   width: 400px;
   height: 400px;
-  background: #7c3aed;
+  background: #06b6d4;
   top: -100px;
   left: -100px;
-  animation: float1 15s ease-in-out infinite;
+  animation: resetFloat1 15s ease-in-out infinite;
 }
 
-.login-orb-2 {
+.reset-orb-2 {
   width: 350px;
   height: 350px;
-  background: #06b6d4;
+  background: #7c3aed;
   bottom: -80px;
   right: -80px;
-  animation: float2 18s ease-in-out infinite;
+  animation: resetFloat2 18s ease-in-out infinite;
 }
 
-.login-orb-3 {
+.reset-orb-3 {
   width: 250px;
   height: 250px;
-  background: #ec4899;
+  background: #f59e0b;
   top: 40%;
   right: 15%;
-  animation: float3 20s ease-in-out infinite;
+  animation: resetFloat3 20s ease-in-out infinite;
 }
 
-@keyframes float1 {
+@keyframes resetFloat1 {
   0%, 100% { transform: translate(0, 0); }
   50% { transform: translate(30px, 30px); }
 }
 
-@keyframes float2 {
+@keyframes resetFloat2 {
   0%, 100% { transform: translate(0, 0); }
   50% { transform: translate(-40px, -20px); }
 }
 
-@keyframes float3 {
+@keyframes resetFloat3 {
   0%, 100% { transform: translate(0, 0); }
   50% { transform: translate(-20px, 40px); }
 }
 
 /* Back Button */
-.login-back-btn {
+.reset-back-btn {
   position: fixed;
   top: 24px;
   left: 24px;
@@ -92,13 +92,13 @@
   transition: all 0.3s ease;
 }
 
-.login-back-btn:hover {
+.reset-back-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateX(-4px);
 }
 
-/* Login Card */
-.login-card {
+/* Reset Card */
+.reset-card {
   position: relative;
   z-index: 10;
   width: 100%;
@@ -113,7 +113,7 @@
 }
 
 /* Logo */
-.login-logo {
+.reset-logo {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,18 +121,18 @@
   margin-bottom: 32px;
 }
 
-.login-logo-icon {
+.reset-logo-icon {
   font-size: 40px;
 }
 
-.login-logo-text {
+.reset-logo-text {
   font-size: 32px;
   font-weight: 800;
   color: #ffffff;
 }
 
 /* Title */
-.login-title {
+.reset-title {
   font-size: 28px;
   font-weight: 700;
   color: #ffffff;
@@ -140,7 +140,7 @@
   margin: 0 0 8px 0;
 }
 
-.login-subtitle {
+.reset-subtitle {
   font-size: 15px;
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
@@ -148,29 +148,29 @@
 }
 
 /* Form */
-.login-form {
+.reset-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 /* Input Group */
-.login-input-group {
+.reset-input-group {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.login-input-icon {
+.reset-input-icon {
   position: absolute;
   left: 16px;
   font-size: 16px;
   z-index: 1;
 }
 
-.login-input {
+.reset-input {
   width: 100%;
-  padding: 16px 50px 16px 48px;
+  padding: 16px 16px 16px 48px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 14px;
@@ -180,48 +180,21 @@
   transition: all 0.3s ease;
 }
 
-.login-input::placeholder {
+.reset-input::placeholder {
   color: rgba(255, 255, 255, 0.4);
 }
 
-.login-input:focus {
-  border-color: #7c3aed;
+.reset-input:focus {
+  border-color: #06b6d4;
   background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
-}
-
-.login-password-toggle {
-  position: absolute;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px;
-}
-
-/* Forgot Password */
-.login-forgot {
-  text-align: right;
-  margin-top: -8px;
-}
-
-.login-forgot a {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.login-forgot a:hover {
-  color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
 }
 
 /* Submit Button */
-.login-submit-btn {
+.reset-submit-btn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
   border: none;
   border-radius: 14px;
   color: #ffffff;
@@ -232,108 +205,60 @@
   margin-top: 8px;
 }
 
-.login-submit-btn:hover:not(:disabled) {
+.reset-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 10px 30px rgba(6, 182, 212, 0.4);
 }
 
-.login-submit-btn:disabled {
+.reset-submit-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
-/* Divider */
-.login-divider {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 8px 0;
-}
-
-.login-divider::before,
-.login-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.login-divider span {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 13px;
-}
-
-/* Google Button */
-.login-google-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.login-google-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.login-google-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* Footer */
-.login-footer {
+.reset-footer {
   text-align: center;
   margin-top: 28px;
   padding-top: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.login-footer p {
+.reset-footer p {
   color: rgba(255, 255, 255, 0.5);
   font-size: 14px;
   margin: 0;
 }
 
-.login-footer a {
-  color: #a855f7;
+.reset-footer a {
+  color: #06b6d4;
   text-decoration: none;
   font-weight: 600;
 }
 
-.login-footer a:hover {
-  color: #c084fc;
+.reset-footer a:hover {
+  color: #22d3ee;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
-  .login-card {
+  .reset-card {
     padding: 36px 24px;
     border-radius: 20px;
   }
   
-  .login-logo-icon {
+  .reset-logo-icon {
     font-size: 32px;
   }
   
-  .login-logo-text {
+  .reset-logo-text {
     font-size: 26px;
   }
   
-  .login-title {
+  .reset-title {
     font-size: 24px;
   }
   
-  .login-back-btn {
+  .reset-back-btn {
     top: 16px;
     left: 16px;
     padding: 10px 16px;

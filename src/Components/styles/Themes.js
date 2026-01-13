@@ -1,14 +1,16 @@
 
-// Add Themes as per your requirements
+// Dark theme for the app
 export const dark = {
-    body: '#202020', // black shade
-    text: '#fff',
-    bodyRgba: '32,32,32',
+    body: '#000000',
+    text: '#ffffff',
+    bodyRgba: '0,0,0',
     textRgba: '255,255,255',
 
-    grey: '#bebebe', // grey shade
+    grey: '#888888',
+    primary: '#7c3aed',
+    primaryLight: '#a855f7',
 
-    fontxs: '0.75em', //1em = 16px
+    fontxs: '0.75em',
     fontsm: '0.875em', 
     fontmd: '1em', 
     fontlg: '1.25em', 

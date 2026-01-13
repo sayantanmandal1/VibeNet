@@ -1,19 +1,15 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import Button from "./Button";
 import Toast from "./Toast";
-import BackButton from "../Common/BackButton";
-import './Pages.css';
-import './InputOverrides.css';
-// import emailjs for frontend email sending
+import './Reset.css';
 import emailjs from '@emailjs/browser';
-import ParticlesBackground from '../Background/ParticlesBackground';
 
 const Reset = () => {
   const [toast, setToast] = useState({ message: '', type: 'error' });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const showToast = (message, type = 'error') => {
     setToast({ message, type });
@@ -28,12 +24,11 @@ const Reset = () => {
       setLoading(true);
       setToast({ message: '', type: 'error' });
       try {
-        // EmailJS integration (replace with your own serviceId, templateId, userId for production)
         await emailjs.send(
-          'service_demo123', // serviceId (placeholder)
-          'template_reset123', // templateId (placeholder)
+          'service_demo123',
+          'template_reset123',
           { user_email: values.email },
-          'user_demoAPIKEY' // public key (placeholder)
+          'user_demoAPIKEY'
         );
         setLoading(false);
         showToast('A password reset link has been sent to your email.', 'success');
@@ -57,39 +52,66 @@ const Reset = () => {
   };
 
   return (
-    <>
-      <ParticlesBackground />
-      <BackButton />
-      <div className="reset-page">
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'error' })} />
-        <div className="auth-container glass-card">
-          <h2 className="auth-title">Reset Your Password</h2>
-          <p className="auth-subtitle">Enter your email and we'll send you a password reset link.</p>
-          <form className="auth-form" onSubmit={handleFormSubmit}>
-            <div className="form-group">
-              <input
-                type="email"
-                className="form-input"
-                placeholder="Enter your email"
-                name="email"
-                {...formik.getFieldProps("email")}
-                autoComplete="off"
-                required
-              />
-            </div>
-            <Button
-              label={loading ? "Sending..." : "Send Reset Link"}
-              type="submit"
-              className="auth-button"
-              disabled={loading}
+    <div className="reset-page-container">
+      {/* Background Effects */}
+      <div className="reset-bg">
+        <div className="reset-orb reset-orb-1"></div>
+        <div className="reset-orb reset-orb-2"></div>
+        <div className="reset-orb reset-orb-3"></div>
+      </div>
+
+      <Toast 
+        message={toast.message} 
+        type={toast.type} 
+        onClose={() => setToast({ message: '', type: 'error' })} 
+      />
+
+      {/* Back Button */}
+      <button className="reset-back-btn" onClick={() => navigate('/login')}>
+        ← Back
+      </button>
+
+      {/* Reset Card */}
+      <div className="reset-card">
+        {/* Logo */}
+        <div className="reset-logo">
+          <span className="reset-logo-icon">🌊</span>
+          <span className="reset-logo-text">VibeNet</span>
+        </div>
+
+        <h1 className="reset-title">Reset Password</h1>
+        <p className="reset-subtitle">Enter your email and we'll send you a reset link</p>
+
+        <form onSubmit={handleFormSubmit} className="reset-form">
+          {/* Email */}
+          <div className="reset-input-group">
+            <span className="reset-input-icon">✉️</span>
+            <input
+              type="email"
+              className="reset-input"
+              placeholder="Email address"
+              name="email"
+              {...formik.getFieldProps('email')}
+              autoComplete="email"
             />
-          </form>
-          <div className="auth-links">
-            <Link to="/login" className="auth-link">Back to Login</Link>
           </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className="reset-submit-btn"
+            disabled={loading}
+          >
+            {loading ? 'Sending...' : 'Send Reset Link'}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="reset-footer">
+          <p>Remember your password? <Link to="/login">Sign in</Link></p>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

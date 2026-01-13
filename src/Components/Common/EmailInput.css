@@ -6,8 +6,8 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
   padding: 0 1rem;
   transition: all 0.3s ease;
@@ -15,24 +15,24 @@
 }
 
 .email-input-container:focus-within {
-  border-color: #667eea;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #7c3aed;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
 }
 
 .email-input-container.success {
-  border-color: #4caf50;
-  background: rgba(76, 175, 80, 0.1);
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
 }
 
 .email-input-container.error {
-  border-color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.1);
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .email-input-container.checking {
-  border-color: #2196F3;
-  background: rgba(33, 150, 243, 0.1);
+  border-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.1);
 }
 
 .email-field {
@@ -40,14 +40,14 @@
   padding: 1rem 0.5rem;
   border: none;
   background: transparent;
-  color: #000000 !important;
+  color: #ffffff;
   font-size: 1rem;
   outline: none;
   font-weight: 500;
 }
 
 .email-field::placeholder {
-  color: rgba(0, 0, 0, 0.5) !important;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 400;
 }
 
@@ -68,20 +68,20 @@
 }
 
 .status-icon.success {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
 }
 
 .status-icon.error {
-  background: rgba(255, 107, 107, 0.2);
-  color: #ff6b6b;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
 }
 
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(33, 150, 243, 0.3);
-  border-top: 2px solid #2196F3;
+  border: 2px solid rgba(6, 182, 212, 0.3);
+  border-top: 2px solid #06b6d4;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -110,11 +110,11 @@
 }
 
 .status-message.success {
-  color: #4caf50;
+  color: #10b981;
 }
 
 .status-message.error {
-  color: #ff6b6b;
+  color: #ef4444;
 }
 
 .status-message.checking {
@@ -124,9 +124,9 @@
 .email-help {
   margin-top: 1rem;
   padding: 1rem;
-  background: rgba(255, 107, 107, 0.1);
+  background: rgba(239, 68, 68, 0.1);
   border-radius: 8px;
-  border-left: 3px solid #ff6b6b;
+  border-left: 3px solid #ef4444;
   animation: slideDown 0.3s ease-out;
 }
 
@@ -143,7 +143,7 @@
 
 .email-help p {
   margin: 0 0 0.5rem 0;
-  color: #ff6b6b;
+  color: #ef4444;
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -161,14 +161,14 @@
 }
 
 .email-help a {
-  color: #4facfe;
+  color: #a855f7;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .email-help a:hover {
-  color: #67c3ff;
+  color: #c084fc;
   text-decoration: underline;
 }
 

@@ -7,7 +7,7 @@ const Section = styled.section`
   width: 100vw;
   display: flex;
   margin: 0 auto;
-  background-color: white; /* Default white background */
+  background-color: ${(props) => props.theme.body};
 
   @media (max-width: 48em) {
     width: 100vw;

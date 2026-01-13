@@ -1,12 +1,353 @@
-import React, { useState, useContext, useCallback } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AuthContext } from '../AppContext/AppContext';
-import UsernameSelector from './UsernameSelector';
 import Toast from './Toast';
-import { countryCodes, getPhoneCodeByCountry } from '../../utils/countryCodes';
-import { FiArrowLeft, FiArrowRight, FiCheck, FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiLoader, FiCamera, FiMapPin, FiPhone, FiCalendar } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
-import './RegistrationWizard.css';
+import { countryCodes } from '../../utils/countryCodes';
+
+// Inline styles to avoid CSS conflicts
+const styles = {
+  container: {
+    minHeight: '100vh',
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#000000',
+    position: 'relative',
+    overflow: 'hidden',
+    padding: '40px 20px',
+    boxSizing: 'border-box',
+  },
+  bg: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+    zIndex: 0,
+  },
+  orb: {
+    position: 'absolute',
+    borderRadius: '50%',
+    filter: 'blur(80px)',
+    opacity: 0.6,
+  },
+  orb1: {
+    width: '400px',
+    height: '400px',
+    background: '#7c3aed',
+    top: '-100px',
+    right: '-100px',
+  },
+  orb2: {
+    width: '350px',
+    height: '350px',
+    background: '#06b6d4',
+    bottom: '-80px',
+    left: '-80px',
+  },
+  orb3: {
+    width: '250px',
+    height: '250px',
+    background: '#10b981',
+    top: '50%',
+    left: '20%',
+  },
+  backBtn: {
+    position: 'fixed',
+    top: '24px',
+    left: '24px',
+    padding: '12px 20px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    zIndex: 100,
+    backdropFilter: 'blur(10px)',
+  },
+  card: {
+    position: 'relative',
+    zIndex: 10,
+    width: '100%',
+    maxWidth: '480px',
+    background: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '24px',
+    padding: '40px 36px',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
+    boxSizing: 'border-box',
+  },
+  logo: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    marginBottom: '28px',
+  },
+  logoIcon: {
+    fontSize: '36px',
+  },
+  logoText: {
+    fontSize: '28px',
+    fontWeight: '800',
+    color: '#ffffff',
+    margin: 0,
+  },
+  progress: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '32px',
+    gap: '8px',
+  },
+  progressStep: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+    flex: 1,
+  },
+  stepDot: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '14px',
+    fontWeight: '600',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: '2px solid rgba(255, 255, 255, 0.2)',
+    color: 'rgba(255, 255, 255, 0.5)',
+    transition: 'all 0.3s ease',
+  },
+  stepDotActive: {
+    background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+    borderColor: 'transparent',
+    color: '#ffffff',
+    transform: 'scale(1.1)',
+    boxShadow: '0 4px 15px rgba(124, 58, 237, 0.4)',
+  },
+  stepDotCompleted: {
+    background: 'rgba(16, 185, 129, 0.2)',
+    borderColor: '#10b981',
+    color: '#10b981',
+  },
+  stepText: {
+    fontSize: '11px',
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.4)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  stepTextActive: {
+    color: '#ffffff',
+  },
+  content: {
+    marginBottom: '24px',
+  },
+  title: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+    margin: '0 0 8px 0',
+  },
+  subtitle: {
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'center',
+    margin: '0 0 24px 0',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  inputGroup: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  inputIcon: {
+    position: 'absolute',
+    left: '16px',
+    fontSize: '16px',
+    zIndex: 2,
+    pointerEvents: 'none',
+  },
+  input: {
+    width: '100%',
+    padding: '14px 50px 14px 48px',
+    background: 'rgba(255, 255, 255, 0.08)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '15px',
+    outline: 'none',
+    boxSizing: 'border-box',
+  },
+  select: {
+    width: '100%',
+    padding: '14px 40px 14px 48px',
+    background: 'rgba(255, 255, 255, 0.08)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '15px',
+    outline: 'none',
+    boxSizing: 'border-box',
+    cursor: 'pointer',
+    appearance: 'none',
+  },
+  textarea: {
+    width: '100%',
+    padding: '14px 16px',
+    background: 'rgba(255, 255, 255, 0.08)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '15px',
+    fontFamily: 'inherit',
+    resize: 'none',
+    outline: 'none',
+    boxSizing: 'border-box',
+    minHeight: '80px',
+  },
+  toggle: {
+    position: 'absolute',
+    right: '16px',
+    background: 'none',
+    border: 'none',
+    fontSize: '16px',
+    cursor: 'pointer',
+    padding: '4px',
+    zIndex: 2,
+  },
+  hint: {
+    fontSize: '12px',
+    color: 'rgba(255, 255, 255, 0.4)',
+    margin: '4px 0 0 4px',
+  },
+  uploadSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '16px',
+  },
+  previewBox: {
+    position: 'relative',
+    width: '100px',
+    height: '100px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    border: '3px solid rgba(124, 58, 237, 0.5)',
+    background: 'rgba(255, 255, 255, 0.05)',
+  },
+  previewImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  uploadLabel: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '28px',
+    cursor: 'pointer',
+    opacity: 0,
+    transition: 'opacity 0.3s',
+  },
+  uploadText: {
+    fontSize: '13px',
+    color: 'rgba(255, 255, 255, 0.5)',
+  },
+  nav: {
+    display: 'flex',
+    gap: '12px',
+    marginBottom: '20px',
+  },
+  btnPrimary: {
+    flex: 1,
+    padding: '14px 20px',
+    borderRadius: '12px',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    border: 'none',
+    background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+    color: '#ffffff',
+  },
+  btnSecondary: {
+    flex: 1,
+    padding: '14px 20px',
+    borderRadius: '12px',
+    fontSize: '15px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    background: 'rgba(255, 255, 255, 0.08)',
+    color: 'rgba(255, 255, 255, 0.8)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    margin: '20px 0',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    background: 'rgba(255, 255, 255, 0.15)',
+  },
+  dividerText: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: '13px',
+  },
+  googleBtn: {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    padding: '14px',
+    background: 'rgba(255, 255, 255, 0.08)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '15px',
+    fontWeight: '500',
+    cursor: 'pointer',
+  },
+  footer: {
+    textAlign: 'center',
+    marginTop: '20px',
+    paddingTop: '20px',
+    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+  },
+  footerText: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: '14px',
+    margin: 0,
+  },
+  footerLink: {
+    color: '#a855f7',
+    textDecoration: 'none',
+    fontWeight: '600',
+  },
+};
 
 const RegistrationWizard = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -14,104 +355,65 @@ const RegistrationWizard = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [toast, setToast] = useState({ message: '', type: 'error' });
+  const [hoverUpload, setHoverUpload] = useState(false);
   const { registerWithEmailAndPassword, signInWithGoogle } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
-
   const prefilledEmail = location.state?.email || '';
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: prefilledEmail,
-    password: '',
-    confirmPassword: '',
-    username: '',
-    bio: '',
-    phoneNumber: '',
-    country: '',
-    countryName: '',
-    location: '',
-    dateOfBirth: '',
-    gender: '',
-    profileImage: null
+    name: '', email: prefilledEmail, password: '', confirmPassword: '',
+    username: '', bio: '', phoneNumber: '', country: '', countryName: '',
+    location: '', dateOfBirth: '', gender: '', profileImage: null
   });
 
   const [errors, setErrors] = useState({});
-  const [emailValidation, setEmailValidation] = useState({ isValid: false, message: '' });
-
-  const handleEmailValidation = useCallback((isValid, message) => {
-    setEmailValidation({ isValid, message });
-    if (!isValid && message) {
-      setErrors(prev => ({ ...prev, email: message }));
-    } else {
-      setErrors(prev => ({ ...prev, email: '' }));
-    }
-  }, []);
-
-  const handleUsernameValidation = useCallback((isValid, message) => {
-    if (!isValid && message) {
-      setErrors(prev => ({ ...prev, username: message }));
-    } else {
-      setErrors(prev => ({ ...prev, username: '' }));
-    }
-  }, []);
-
-  const showToast = (message, type = 'error') => {
-    setToast({ message, type });
-  };
+  const showToast = (message, type = 'error') => setToast({ message, type });
 
   const updateFormData = (field, value) => {
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
-      
       if (field === 'country') {
         const selectedCountry = countryCodes.find(c => c.code === value);
         if (selectedCountry) {
           newData.countryName = selectedCountry.name;
           newData.location = selectedCountry.name;
-          const phoneCode = selectedCountry.phoneCode;
-          if (!newData.phoneNumber || !newData.phoneNumber.startsWith(phoneCode)) {
-            const localNumber = newData.phoneNumber.replace(/^\+?\d{1,4}\s*/, '');
-            newData.phoneNumber = localNumber ? `${phoneCode} ${localNumber}` : phoneCode;
-          }
         }
       }
-      
       return newData;
     });
-    
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
   const validateStep1 = () => {
     const stepErrors = {};
     if (!formData.name.trim()) stepErrors.name = 'Name is required';
     if (!formData.email.trim()) stepErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) stepErrors.email = 'Invalid email address';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) stepErrors.email = 'Invalid email';
     if (!formData.password) stepErrors.password = 'Password is required';
-    else if (formData.password.length < 6) stepErrors.password = 'Password must be at least 6 characters';
-    if (!formData.confirmPassword) stepErrors.confirmPassword = 'Please confirm your password';
+    else if (formData.password.length < 6) stepErrors.password = 'Min 6 characters';
+    if (!formData.confirmPassword) stepErrors.confirmPassword = 'Confirm password';
     else if (formData.password !== formData.confirmPassword) stepErrors.confirmPassword = 'Passwords do not match';
     setErrors(stepErrors);
+    if (Object.keys(stepErrors).length > 0) showToast(Object.values(stepErrors)[0]);
     return Object.keys(stepErrors).length === 0;
   };
 
   const validateStep2 = () => {
     const stepErrors = {};
     if (!formData.username.trim()) stepErrors.username = 'Username is required';
-    else if (formData.username.length < 3 || formData.username.length > 30) stepErrors.username = 'Username must be 3-30 characters';
-    else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) stepErrors.username = 'Username can only contain letters, numbers, and underscores';
+    else if (formData.username.length < 3 || formData.username.length > 30) stepErrors.username = '3-30 characters';
+    else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) stepErrors.username = 'Letters, numbers, underscores only';
     setErrors(stepErrors);
+    if (Object.keys(stepErrors).length > 0) showToast(Object.values(stepErrors)[0]);
     return Object.keys(stepErrors).length === 0;
   };
 
   const validateStep3 = () => {
     const stepErrors = {};
-    if (formData.bio && formData.bio.length > 500) stepErrors.bio = 'Bio must be less than 500 characters';
     if (!formData.country.trim()) stepErrors.country = 'Country is required';
     setErrors(stepErrors);
+    if (Object.keys(stepErrors).length > 0) showToast(Object.values(stepErrors)[0]);
     return Object.keys(stepErrors).length === 0;
   };
 
@@ -119,13 +421,12 @@ const RegistrationWizard = () => {
     const stepErrors = {};
     if (!formData.dateOfBirth) stepErrors.dateOfBirth = 'Date of birth is required';
     else {
-      const birthDate = new Date(formData.dateOfBirth);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      if (age < 13) stepErrors.dateOfBirth = 'You must be at least 13 years old';
+      const age = new Date().getFullYear() - new Date(formData.dateOfBirth).getFullYear();
+      if (age < 13) stepErrors.dateOfBirth = 'Must be at least 13 years old';
     }
     if (!formData.gender.trim()) stepErrors.gender = 'Gender is required';
     setErrors(stepErrors);
+    if (Object.keys(stepErrors).length > 0) showToast(Object.values(stepErrors)[0]);
     return Object.keys(stepErrors).length === 0;
   };
 
@@ -138,44 +439,31 @@ const RegistrationWizard = () => {
       case 4: isValid = validateStep4(); break;
       default: isValid = true;
     }
-    
     if (isValid) {
       if (currentStep < 4) setCurrentStep(currentStep + 1);
       else handleSubmit();
-    } else {
-      const firstError = Object.values(errors)[0];
-      if (firstError) showToast(firstError);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
-  };
+  const handlePrevious = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
 
   const handleSubmit = async () => {
     if (!validateStep4()) return;
-
     setLoading(true);
     try {
       await registerWithEmailAndPassword(
-        formData.name.trim(),
-        formData.email.trim(),
-        formData.password,
-        formData.username.trim(),
-        formData.bio.trim() || undefined,
+        formData.name.trim(), formData.email.trim(), formData.password,
+        formData.username.trim(), formData.bio.trim() || undefined,
         formData.phoneNumber.trim() || undefined,
         formData.location.trim() || formData.countryName || undefined,
-        formData.country.trim(),
-        formData.dateOfBirth,
-        formData.gender.trim(),
+        formData.country.trim(), formData.dateOfBirth, formData.gender.trim(),
         formData.profileImage
       );
-      
-      showToast('Registration successful! Redirecting...', 'success');
+      showToast('Registration successful!', 'success');
       setTimeout(() => navigate('/home'), 1200);
     } catch (error) {
       setLoading(false);
-      showToast(error.message || 'Registration failed. Please try again.');
+      showToast(error.message || 'Registration failed');
     }
   };
 
@@ -183,311 +471,212 @@ const RegistrationWizard = () => {
     setLoading(true);
     try {
       await signInWithGoogle();
-      showToast('Registration successful! Redirecting...', 'success');
+      showToast('Registration successful!', 'success');
       setTimeout(() => navigate('/home'), 1200);
     } catch (error) {
       setLoading(false);
-      showToast('Google registration failed. Please try again.');
+      showToast('Google registration failed');
     }
   };
 
-  const steps = [
-    { num: 1, label: 'Account', icon: FiUser },
-    { num: 2, label: 'Username', icon: FiMail },
-    { num: 3, label: 'Details', icon: FiMapPin },
-    { num: 4, label: 'Complete', icon: FiCheck }
-  ];
+  const getStepDotStyle = (step) => {
+    if (currentStep > step) return { ...styles.stepDot, ...styles.stepDotCompleted };
+    if (currentStep >= step) return { ...styles.stepDot, ...styles.stepDotActive };
+    return styles.stepDot;
+  };
+
+  const getStepTextStyle = (step) => {
+    if (currentStep >= step) return { ...styles.stepText, ...styles.stepTextActive };
+    return styles.stepText;
+  };
 
   return (
-    <div className="register-page">
-      {/* Animated Background */}
-      <div className="auth-bg-gradient"></div>
-      <div className="auth-bg-orbs">
-        <div className="auth-orb auth-orb-1"></div>
-        <div className="auth-orb auth-orb-2"></div>
-        <div className="auth-orb auth-orb-3"></div>
+    <div style={styles.container}>
+      {/* Background Orbs */}
+      <div style={styles.bg}>
+        <div style={{ ...styles.orb, ...styles.orb1 }}></div>
+        <div style={{ ...styles.orb, ...styles.orb2 }}></div>
+        <div style={{ ...styles.orb, ...styles.orb3 }}></div>
       </div>
-      <div className="auth-bg-grid"></div>
-
-      {/* Back Button */}
-      <button className="back-btn" onClick={() => navigate('/')}>
-        <FiArrowLeft size={20} />
-        <span>Back</span>
-      </button>
 
       <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: 'error' })} />
 
-      <div className="register-container">
-        <div className="register-card glass-card">
-          {/* Logo */}
-          <div className="auth-logo">
-            <span className="logo-wave">🌊</span>
-            <span className="logo-text">VibeNet</span>
-          </div>
+      <button style={styles.backBtn} onClick={() => navigate('/')}>← Back</button>
 
-          {/* Progress Steps */}
-          <div className="progress-container">
-            <div className="progress-steps">
-              {steps.map((step, index) => (
-                <React.Fragment key={step.num}>
-                  <div className={`step ${currentStep >= step.num ? 'active' : ''} ${currentStep > step.num ? 'completed' : ''}`}>
-                    <div className="step-circle">
-                      {currentStep > step.num ? <FiCheck size={18} /> : <step.icon size={18} />}
-                    </div>
-                    <span className="step-label">{step.label}</span>
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div className={`step-line ${currentStep > step.num ? 'active' : ''}`}></div>
-                  )}
-                </React.Fragment>
-              ))}
+      <div style={styles.card}>
+        {/* Logo */}
+        <div style={styles.logo}>
+          <span style={styles.logoIcon}>🌊</span>
+          <span style={styles.logoText}>VibeNet</span>
+        </div>
+
+        {/* Progress */}
+        <div style={styles.progress}>
+          {[1, 2, 3, 4].map((step) => (
+            <div key={step} style={styles.progressStep}>
+              <div style={getStepDotStyle(step)}>{currentStep > step ? '✓' : step}</div>
+              <span style={getStepTextStyle(step)}>
+                {step === 1 ? 'Account' : step === 2 ? 'Username' : step === 3 ? 'Details' : 'Finish'}
+              </span>
             </div>
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${(currentStep / 4) * 100}%` }}></div>
-            </div>
-          </div>
+          ))}
+        </div>
 
-          {/* Step Content */}
-          <div className="step-content">
-            {/* Step 1: Account Info */}
-            {currentStep === 1 && (
-              <div className="step-panel">
-                <h2 className="step-title">Create Your Account</h2>
-                <p className="step-subtitle">Let's start with your basic information</p>
-
-                <div className="form-fields">
-                  <div className="input-group">
-                    <div className="input-icon"><FiUser size={20} /></div>
-                    <input
-                      type="text"
-                      className={`register-input ${errors.name ? 'error' : ''}`}
-                      placeholder="Full Name"
-                      value={formData.name}
-                      onChange={(e) => updateFormData('name', e.target.value)}
-                    />
-                  </div>
-
-                  <div className="input-group">
-                    <div className="input-icon"><FiMail size={20} /></div>
-                    <input
-                      type="email"
-                      className={`register-input ${errors.email ? 'error' : ''}`}
-                      placeholder="Email Address"
-                      value={formData.email}
-                      onChange={(e) => updateFormData('email', e.target.value)}
-                    />
-                  </div>
-
-                  <div className="input-group">
-                    <div className="input-icon"><FiLock size={20} /></div>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      className={`register-input ${errors.password ? 'error' : ''}`}
-                      placeholder="Password"
-                      value={formData.password}
-                      onChange={(e) => updateFormData('password', e.target.value)}
-                    />
-                    <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                    </button>
-                  </div>
-
-                  <div className="input-group">
-                    <div className="input-icon"><FiLock size={20} /></div>
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      className={`register-input ${errors.confirmPassword ? 'error' : ''}`}
-                      placeholder="Confirm Password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => updateFormData('confirmPassword', e.target.value)}
-                    />
-                    <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                      {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Username */}
-            {currentStep === 2 && (
-              <div className="step-panel">
-                <h2 className="step-title">Choose Your Username</h2>
-                <p className="step-subtitle">Pick a unique username for your profile</p>
-
-                <div className="form-fields">
-                  <UsernameSelector
-                    value={formData.username}
-                    onChange={(username) => updateFormData('username', username)}
-                    error={errors.username}
-                    onValidationChange={handleUsernameValidation}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Personal Details */}
-            {currentStep === 3 && (
-              <div className="step-panel">
-                <h2 className="step-title">Personal Details</h2>
-                <p className="step-subtitle">Tell us a bit more about yourself</p>
-
-                <div className="form-fields">
-                  <div className="input-group textarea-group">
-                    <textarea
-                      className="register-textarea"
-                      placeholder="Write a short bio (optional)"
-                      value={formData.bio}
-                      onChange={(e) => updateFormData('bio', e.target.value)}
-                      rows={3}
-                      maxLength={500}
-                    />
-                    <span className="char-count">{formData.bio.length}/500</span>
-                  </div>
-
-                  <div className="input-group">
-                    <div className="input-icon"><FiMapPin size={20} /></div>
-                    <select
-                      className={`register-select ${errors.country ? 'error' : ''}`}
-                      value={formData.country}
-                      onChange={(e) => updateFormData('country', e.target.value)}
-                    >
-                      <option value="">Select your country</option>
-                      {countryCodes.map((country) => (
-                        <option key={country.code} value={country.code}>
-                          {country.flag} {country.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="input-group">
-                    <div className="input-icon"><FiPhone size={20} /></div>
-                    <div className="phone-code">{formData.country ? getPhoneCodeByCountry(formData.country) : '+1'}</div>
-                    <input
-                      type="tel"
-                      className="register-input phone-input"
-                      placeholder="Phone Number (optional)"
-                      value={formData.phoneNumber}
-                      onChange={(e) => updateFormData('phoneNumber', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Complete Profile */}
-            {currentStep === 4 && (
-              <div className="step-panel">
-                <h2 className="step-title">Complete Your Profile</h2>
-                <p className="step-subtitle">Final details to get you started</p>
-
-                <div className="form-fields">
-                  {/* Profile Image Upload */}
-                  <div className="profile-upload">
-                    <div className="profile-preview">
-                      <img
-                        src={formData.profileImage ? URL.createObjectURL(formData.profileImage) : "/user-default.jpg"}
-                        alt="Profile"
-                      />
-                      <label className="upload-overlay">
-                        <FiCamera size={24} />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) updateFormData('profileImage', file);
-                          }}
-                          hidden
-                        />
-                      </label>
-                    </div>
-                    <span className="upload-hint">Click to upload photo</span>
-                  </div>
-
-                  <div className="input-group">
-                    <div className="input-icon"><FiCalendar size={20} /></div>
-                    <input
-                      type="date"
-                      className={`register-input ${errors.dateOfBirth ? 'error' : ''}`}
-                      value={formData.dateOfBirth}
-                      onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
-                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
-                    />
-                  </div>
-
-                  <div className="input-group">
-                    <div className="input-icon"><FiUser size={20} /></div>
-                    <select
-                      className={`register-select ${errors.gender ? 'error' : ''}`}
-                      value={formData.gender}
-                      onChange={(e) => updateFormData('gender', e.target.value)}
-                    >
-                      <option value="">Select your gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="non-binary">Non-binary</option>
-                      <option value="prefer-not-to-say">Prefer not to say</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="nav-buttons">
-            {currentStep > 1 && (
-              <button className="nav-btn secondary" onClick={handlePrevious} disabled={loading}>
-                <FiArrowLeft size={18} />
-                <span>Previous</span>
-              </button>
-            )}
-            
-            <button
-              className={`nav-btn primary ${loading ? 'loading' : ''}`}
-              onClick={handleNext}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <FiLoader className="spin" size={18} />
-                  <span>Processing...</span>
-                </>
-              ) : currentStep === 4 ? (
-                <>
-                  <span>Create Account</span>
-                  <FiCheck size={18} />
-                </>
-              ) : (
-                <>
-                  <span>Continue</span>
-                  <FiArrowRight size={18} />
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Google Sign Up (Step 1 only) */}
+        {/* Content */}
+        <div style={styles.content}>
           {currentStep === 1 && (
-            <>
-              <div className="auth-divider">
-                <span>or continue with</span>
+            <div>
+              <h2 style={styles.title}>Create Account</h2>
+              <p style={styles.subtitle}>Enter your basic information</p>
+              <div style={styles.form}>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>👤</span>
+                  <input style={styles.input} type="text" placeholder="Full Name" value={formData.name}
+                    onChange={(e) => updateFormData('name', e.target.value)} />
+                </div>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>✉️</span>
+                  <input style={styles.input} type="email" placeholder="Email Address" value={formData.email}
+                    onChange={(e) => updateFormData('email', e.target.value)} />
+                </div>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>🔒</span>
+                  <input style={styles.input} type={showPassword ? "text" : "password"} placeholder="Password"
+                    value={formData.password} onChange={(e) => updateFormData('password', e.target.value)} />
+                  <button type="button" style={styles.toggle} onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>🔒</span>
+                  <input style={styles.input} type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password"
+                    value={formData.confirmPassword} onChange={(e) => updateFormData('confirmPassword', e.target.value)} />
+                  <button type="button" style={styles.toggle} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    {showConfirmPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
               </div>
-              
-              <button className="google-btn" onClick={handleGoogleSignUp} disabled={loading}>
-                <FcGoogle size={24} />
-                <span>Google</span>
-              </button>
-            </>
+            </div>
           )}
 
-          {/* Login Link */}
-          <div className="auth-footer">
-            <p>Already have an account? <Link to="/login">Sign in</Link></p>
-          </div>
+          {currentStep === 2 && (
+            <div>
+              <h2 style={styles.title}>Choose Username</h2>
+              <p style={styles.subtitle}>Pick a unique username</p>
+              <div style={styles.form}>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>@</span>
+                  <input style={styles.input} type="text" placeholder="username" value={formData.username}
+                    onChange={(e) => updateFormData('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    maxLength={30} />
+                </div>
+                <p style={styles.hint}>3-30 characters, letters, numbers, underscores only</p>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div>
+              <h2 style={styles.title}>Personal Details</h2>
+              <p style={styles.subtitle}>Tell us about yourself</p>
+              <div style={styles.form}>
+                <div style={styles.inputGroup}>
+                  <textarea style={styles.textarea} placeholder="Write a short bio (optional)"
+                    value={formData.bio} onChange={(e) => updateFormData('bio', e.target.value)}
+                    rows={3} maxLength={500} />
+                </div>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>🌍</span>
+                  <select style={styles.select} value={formData.country}
+                    onChange={(e) => updateFormData('country', e.target.value)}>
+                    <option value="">Select Country</option>
+                    {countryCodes.map((country) => (
+                      <option key={country.code} value={country.code}>{country.flag} {country.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>📱</span>
+                  <input style={styles.input} type="tel" placeholder="Phone Number (optional)"
+                    value={formData.phoneNumber} onChange={(e) => updateFormData('phoneNumber', e.target.value)} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div>
+              <h2 style={styles.title}>Complete Profile</h2>
+              <p style={styles.subtitle}>Final details</p>
+              <div style={styles.form}>
+                <div style={styles.uploadSection}>
+                  <div style={styles.previewBox}
+                    onMouseEnter={() => setHoverUpload(true)} onMouseLeave={() => setHoverUpload(false)}>
+                    <img style={styles.previewImg}
+                      src={formData.profileImage ? URL.createObjectURL(formData.profileImage) : "/user-default.jpg"} alt="Profile" />
+                    <label style={{ ...styles.uploadLabel, opacity: hoverUpload ? 1 : 0 }}>
+                      📷
+                      <input type="file" accept="image/*" hidden
+                        onChange={(e) => { const file = e.target.files[0]; if (file) updateFormData('profileImage', file); }} />
+                    </label>
+                  </div>
+                  <span style={styles.uploadText}>Upload Photo</span>
+                </div>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>📅</span>
+                  <input style={styles.input} type="date" value={formData.dateOfBirth}
+                    onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]} />
+                </div>
+                <div style={styles.inputGroup}>
+                  <span style={styles.inputIcon}>⚧️</span>
+                  <select style={styles.select} value={formData.gender}
+                    onChange={(e) => updateFormData('gender', e.target.value)}>
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="non-binary">Non-binary</option>
+                    <option value="prefer-not-to-say">Prefer not to say</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div style={styles.nav}>
+          {currentStep > 1 && (
+            <button style={styles.btnSecondary} onClick={handlePrevious} disabled={loading}>← Previous</button>
+          )}
+          <button style={styles.btnPrimary} onClick={handleNext} disabled={loading}>
+            {loading ? 'Processing...' : currentStep === 4 ? 'Create Account' : 'Continue →'}
+          </button>
+        </div>
+
+        {/* Google (Step 1 only) */}
+        {currentStep === 1 && (
+          <>
+            <div style={styles.divider}>
+              <div style={styles.dividerLine}></div>
+              <span style={styles.dividerText}>or</span>
+              <div style={styles.dividerLine}></div>
+            </div>
+            <button style={styles.googleBtn} onClick={handleGoogleSignUp} disabled={loading}>
+              <svg width="20" height="20" viewBox="0 0 48 48">
+                <path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.19 3.22l6.85-6.85C36.68 2.09 30.7 0 24 0 14.82 0 6.71 5.08 2.69 12.44l7.98 6.2C12.13 13.13 17.62 9.5 24 9.5z"/>
+                <path fill="#34A853" d="M46.1 24.55c0-1.64-.15-3.22-.42-4.74H24v9.01h12.42c-.54 2.9-2.18 5.36-4.65 7.01l7.19 5.59C43.93 37.09 46.1 31.3 46.1 24.55z"/>
+                <path fill="#FBBC05" d="M10.67 28.64c-1.01-2.9-1.01-6.04 0-8.94l-7.98-6.2C.99 17.68 0 20.74 0 24c0 3.26.99 6.32 2.69 9.5l7.98-6.2z"/>
+                <path fill="#EA4335" d="M24 48c6.7 0 12.68-2.21 16.98-6.01l-7.19-5.59c-2.01 1.35-4.59 2.15-7.79 2.15-6.38 0-11.87-3.63-14.33-8.94l-7.98 6.2C6.71 42.92 14.82 48 24 48z"/>
+              </svg>
+              Sign up with Google
+            </button>
+          </>
+        )}
+
+        {/* Footer */}
+        <div style={styles.footer}>
+          <p style={styles.footerText}>Already have an account? <Link to="/login" style={styles.footerLink}>Sign in</Link></p>
         </div>
       </div>
     </div>

@@ -4,8 +4,6 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { AuthContext } from "../AppContext/AppContext";
 import Toast from "./Toast";
-import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft, FiLoader } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 import './Login.css';
 
 const Login = () => {
@@ -85,21 +83,13 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-page">
-      {/* Animated Background */}
-      <div className="auth-bg-gradient"></div>
-      <div className="auth-bg-orbs">
-        <div className="auth-orb auth-orb-1"></div>
-        <div className="auth-orb auth-orb-2"></div>
-        <div className="auth-orb auth-orb-3"></div>
+    <div className="login-page-container">
+      {/* Background Effects */}
+      <div className="login-bg">
+        <div className="login-orb login-orb-1"></div>
+        <div className="login-orb login-orb-2"></div>
+        <div className="login-orb login-orb-3"></div>
       </div>
-      <div className="auth-bg-grid"></div>
-
-      {/* Back Button */}
-      <button className="back-btn" onClick={() => navigate('/')}>
-        <FiArrowLeft size={20} />
-        <span>Back</span>
-      </button>
 
       <Toast 
         message={toast.message} 
@@ -107,97 +97,95 @@ const Login = () => {
         onClose={() => setToast({ message: '', type: 'error' })} 
       />
 
-      <div className="auth-container">
-        <div className="auth-card glass-card">
-          {/* Logo */}
-          <div className="auth-logo">
-            <span className="logo-wave">🌊</span>
-            <span className="logo-text">VibeNet</span>
+      {/* Back Button */}
+      <button className="login-back-btn" onClick={() => navigate('/')}>
+        ← Back
+      </button>
+
+      {/* Login Card */}
+      <div className="login-card">
+        {/* Logo */}
+        <div className="login-logo">
+          <span className="login-logo-icon">🌊</span>
+          <span className="login-logo-text">VibeNet</span>
+        </div>
+
+        <h1 className="login-title">Welcome Back</h1>
+        <p className="login-subtitle">Sign in to continue to VibeNet</p>
+
+        <form onSubmit={handleFormSubmit} className="login-form">
+          {/* Email */}
+          <div className="login-input-group">
+            <span className="login-input-icon">✉️</span>
+            <input
+              type="email"
+              className="login-input"
+              placeholder="Email address"
+              name="email"
+              {...formik.getFieldProps('email')}
+              autoComplete="email"
+            />
           </div>
 
-          <h1 className="auth-title">Welcome Back</h1>
-          <p className="auth-subtitle">Sign in to continue to VibeNet</p>
-
-          <form onSubmit={handleFormSubmit} className="auth-form">
-            {/* Email Input */}
-            <div className="input-group">
-              <div className="input-icon">
-                <FiMail size={20} />
-              </div>
-              <input
-                type="email"
-                className="auth-input"
-                placeholder="Email address"
-                name="email"
-                {...formik.getFieldProps('email')}
-                autoComplete="email"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div className="input-group">
-              <div className="input-icon">
-                <FiLock size={20} />
-              </div>
-              <input
-                type={showPassword ? "text" : "password"}
-                className="auth-input"
-                placeholder="Password"
-                name="password"
-                {...formik.getFieldProps('password')}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-              </button>
-            </div>
-
-            {/* Forgot Password Link */}
-            <div className="forgot-password">
-              <Link to="/reset">Forgot password?</Link>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className={`auth-submit-btn ${loading ? 'loading' : ''}`}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <FiLoader className="spin" size={20} />
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                <span>Sign In</span>
-              )}
-            </button>
-
-            {/* Divider */}
-            <div className="auth-divider">
-              <span>or continue with</span>
-            </div>
-
-            {/* Google Login */}
+          {/* Password */}
+          <div className="login-input-group">
+            <span className="login-input-icon">🔒</span>
+            <input
+              type={showPassword ? "text" : "password"}
+              className="login-input"
+              placeholder="Password"
+              name="password"
+              {...formik.getFieldProps('password')}
+              autoComplete="current-password"
+            />
             <button
               type="button"
-              className="google-btn"
-              onClick={handleGoogleLogin}
-              disabled={loading}
+              className="login-password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
             >
-              <FcGoogle size={24} />
-              <span>Google</span>
+              {showPassword ? '🙈' : '👁️'}
             </button>
-          </form>
-
-          {/* Register Link */}
-          <div className="auth-footer">
-            <p>Don't have an account? <Link to="/register">Create one</Link></p>
           </div>
+
+          {/* Forgot Password */}
+          <div className="login-forgot">
+            <Link to="/reset">Forgot password?</Link>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className="login-submit-btn"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+
+          {/* Divider */}
+          <div className="login-divider">
+            <span>or</span>
+          </div>
+
+          {/* Google */}
+          <button
+            type="button"
+            className="login-google-btn"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+          >
+            <svg width="20" height="20" viewBox="0 0 48 48">
+              <path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.19 3.22l6.85-6.85C36.68 2.09 30.7 0 24 0 14.82 0 6.71 5.08 2.69 12.44l7.98 6.2C12.13 13.13 17.62 9.5 24 9.5z"/>
+              <path fill="#34A853" d="M46.1 24.55c0-1.64-.15-3.22-.42-4.74H24v9.01h12.42c-.54 2.9-2.18 5.36-4.65 7.01l7.19 5.59C43.93 37.09 46.1 31.3 46.1 24.55z"/>
+              <path fill="#FBBC05" d="M10.67 28.64c-1.01-2.9-1.01-6.04 0-8.94l-7.98-6.2C.99 17.68 0 20.74 0 24c0 3.26.99 6.32 2.69 9.5l7.98-6.2z"/>
+              <path fill="#EA4335" d="M24 48c6.7 0 12.68-2.21 16.98-6.01l-7.19-5.59c-2.01 1.35-4.59 2.15-7.79 2.15-6.38 0-11.87-3.63-14.33-8.94l-7.98 6.2C6.71 42.92 14.82 48 24 48z"/>
+            </svg>
+            Continue with Google
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="login-footer">
+          <p>Don't have an account? <Link to="/register">Create one</Link></p>
         </div>
       </div>
     </div>

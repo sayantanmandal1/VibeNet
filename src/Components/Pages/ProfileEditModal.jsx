@@ -17,12 +17,15 @@ const Overlay = styled.div`
 `;
 
 const Modal = styled.div`
-  background: #fff;
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 2rem;
   min-width: 400px;
   max-width: 500px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,16 +40,16 @@ const CloseButton = styled.button`
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
   
   &:hover {
-    color: #333;
+    color: #ffffff;
   }
 `;
 
 const Title = styled.h2`
   margin-bottom: 2rem;
-  color: #333;
+  color: #ffffff;
   font-weight: 700;
 `;
 
@@ -96,20 +99,27 @@ const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #333;
+  color: rgba(255, 255, 255, 0.8);
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 12px 16px;
   border-radius: 10px;
-  border: 2px solid #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
   font-size: 1rem;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
+  
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
   }
 `;
 
@@ -117,15 +127,22 @@ const TextArea = styled.textarea`
   width: 100%;
   padding: 12px 16px;
   border-radius: 10px;
-  border: 2px solid #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
   font-size: 1rem;
   resize: vertical;
   min-height: 80px;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
+  
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
   
   &:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
   }
 `;
 
@@ -145,19 +162,20 @@ const Button = styled.button`
   transition: all 0.3s ease;
   
   ${props => props.primary ? `
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
     color: white;
     
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
     }
   ` : `
-    background: #f5f5f5;
-    color: #666;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     
     &:hover {
-      background: #e0e0e0;
+      background: rgba(255, 255, 255, 0.12);
     }
   `}
 `;
