@@ -1,30 +1,194 @@
+/* ============================================
+   COMMENT SECTION - GLASSMORPHISM DESIGN
+   ============================================ */
+
 .comment-section {
-  padding: 1rem;
-  border-top: 1px solid var(--border-color);
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Comment Input */
+.comment-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.comment-avatar-wrapper {
+  flex-shrink: 0;
+}
+
+.comment-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid rgba(124, 58, 237, 0.3);
 }
 
 .comment-form {
+  flex: 1;
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px 4px 4px 16px;
+  transition: all 0.3s ease;
+}
+
+.comment-form:focus-within {
+  border-color: rgba(124, 58, 237, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
 .comment-input {
   flex: 1;
-  padding: 0.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 0.875rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 0.95rem;
+  padding: 10px 0;
+}
+
+.comment-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .comment-submit {
-  padding: 0.5rem 1rem;
-  background: var(--primary-color);
-  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   border: none;
-  border-radius: 4px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #ffffff;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
-.comment-submit:hover {
-  background: var(--primary-dark);
+.comment-submit:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
+}
+
+.comment-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.comment-submit.submitting {
+  background: linear-gradient(135deg, #6b21a8 0%, #7c3aed 100%);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Comments List */
+.comments-list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.comments-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Loading State */
+.comments-loading {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* No Comments */
+.no-comments {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.no-comments-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.no-comments p {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .comment-section {
+    padding: 16px;
+  }
+  
+  .comment-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+  
+  .comment-form {
+    padding: 4px 4px 4px 12px;
+  }
+  
+  .comment-submit {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
 }

@@ -1,10 +1,11 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { AuthContext } from "../AppContext/AppContext";
-import { FaImage, FaVideo, FaSmile } from "react-icons/fa";
+import { FiImage, FiVideo, FiSmile, FiSend, FiX, FiLoader } from "react-icons/fi";
 import "./Main.css";
 import PostCard from "./PostCard";
 import apiClient from "../../config/api";
 import { PostsReducer, postActions, postsStates } from "../AppContext/PostReducer";
+import { getProfileImageUrl, handleImageError } from "../../utils/imageUtils";
 
 const Main = () => {
   const { user, userData } = useContext(AuthContext);
@@ -19,19 +20,20 @@ const Main = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [isPosting, setIsPosting] = useState(false);
 
   const handleSubmitPost = async (e) => {
     e.preventDefault();
-    if (text.trim() !== "") {
+    if (text.trim() !== "" && !isPosting) {
+      setIsPosting(true);
       try {
         const postData = {
           content: text,
-          image: image // This will be a File object, not base64
+          image: image
         };
 
         const response = await apiClient.createPost(postData);
         
-        // Add new post to the beginning of the posts array
         dispatch({
           type: SUBMIT_POST,
           posts: [response.post, ...state.posts]
@@ -42,7 +44,7 @@ const Main = () => {
         
         setNotification({
           show: true,
-          message: "Post submitted successfully!",
+          message: "Post shared successfully! ✨",
           type: "success",
         });
         setTimeout(() => setNotification(null), 3000);
@@ -50,13 +52,16 @@ const Main = () => {
         dispatch({ type: HANDLE_ERROR });
         setNotification({ show: true, message: err.message, type: "error" });
         console.log(err.message);
+      } finally {
+        setIsPosting(false);
       }
-    } else {
+    } else if (text.trim() === "") {
       setNotification({
         show: true,
-        message: "Please enter some text to post.",
+        message: "Write something to share with your friends!",
         type: "error",
       });
+      setTimeout(() => setNotification(null), 3000);
     }
   };
 
@@ -129,7 +134,6 @@ const Main = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Store the actual File object, not base64
       setImage(file);
     }
   };
@@ -142,87 +146,133 @@ const Main = () => {
   };
 
   return (
-    <div className="main-container">
+    <div className="main-feed">
+      {/* Notification Toast */}
       {notification && (
-        <div className={`notification ${notification.type}`}>
+        <div className={`toast-notification ${notification.type}`}>
           <span>{notification.message}</span>
           <button
-            className="notification-close"
+            className="toast-close"
             onClick={() => setNotification(null)}
           >
-            ×
+            <FiX size={16} />
           </button>
         </div>
       )}
       
-      <div className="post-form">
-        <div className="user-profile">
-          <img
-            src={userData?.profileImage || user?.photoURL || "/user-default.jpg"}
-            alt="user"
-            className="user-avatar"
-          />
-        </div>
-        <textarea
-          className="post-input"
-          placeholder="What's on your mind?"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        
-        {image && (
-          <div className="image-preview">
-            <img 
-              src={URL.createObjectURL(image)} 
-              alt="Preview" 
-              className="preview-image"
+      {/* Create Post Card */}
+      <div className="create-post-card glass-card">
+        <div className="create-post-header">
+          <div className="user-avatar-wrapper">
+            <img
+              src={getProfileImageUrl(user || userData)}
+              alt="user"
+              className="user-avatar"
+              onError={(e) => handleImageError(e, "/user-default.jpg")}
             />
-            <button 
-              className="remove-image"
-              onClick={removeImage}
+            <div className="avatar-ring"></div>
+          </div>
+          <div className="create-post-info">
+            <span className="greeting">What's happening,</span>
+            <span className="username">{userData?.name || user?.name || 'Friend'}?</span>
+          </div>
+        </div>
+
+        <div className="create-post-body">
+          <textarea
+            className="post-textarea"
+            placeholder="Share your thoughts with the world..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={3}
+          />
+          
+          {image && (
+            <div className="image-preview-container">
+              <img 
+                src={URL.createObjectURL(image)} 
+                alt="Preview" 
+                className="preview-image"
+              />
+              <button 
+                className="remove-preview"
+                onClick={removeImage}
+                type="button"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+          )}
+        </div>
+        
+        <div className="create-post-footer">
+          <div className="post-attachments">
+            <input
+              type="file"
+              hidden
+              ref={fileRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+            />
+            <button
+              className="attachment-btn"
+              onClick={() => fileRef.current.click()}
               type="button"
             >
-              ×
+              <FiImage size={20} />
+              <span>Photo</span>
+            </button>
+            <button className="attachment-btn" type="button">
+              <FiVideo size={20} />
+              <span>Video</span>
+            </button>
+            <button className="attachment-btn" type="button">
+              <FiSmile size={20} />
+              <span>Feeling</span>
             </button>
           </div>
-        )}
-        
-        <div className="post-actions">
-          <input
-            type="file"
-            hidden
-            ref={fileRef}
-            onChange={handleImageUpload}
-            accept="image/*"
-          />
-          <button
-            className="action-button"
-            onClick={() => fileRef.current.click()}
-            type="button"
+          <button 
+            className={`post-submit-btn ${isPosting ? 'posting' : ''}`}
+            onClick={handleSubmitPost}
+            disabled={isPosting}
           >
-            <FaImage /> Add Image
-          </button>
-          <button className="action-button" type="button">
-            <FaVideo /> Live Video
-          </button>
-          <button className="action-button" type="button">
-            <FaSmile /> Feeling/Activity
-          </button>
-          <button className="post-submit" onClick={handleSubmitPost}>
-            Post
+            {isPosting ? (
+              <>
+                <FiLoader className="spin" size={18} />
+                <span>Posting...</span>
+              </>
+            ) : (
+              <>
+                <FiSend size={18} />
+                <span>Post</span>
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col py-4 w-full">
+      {/* Feed Section */}
+      <div className="feed-section">
         {state?.error ? (
-          <div className="notification error">
-            Something went wrong, refresh and try again...
+          <div className="feed-error glass-card">
+            <div className="error-icon">⚠️</div>
+            <h3>Oops! Something went wrong</h3>
+            <p>Please refresh the page and try again</p>
+            <button onClick={() => fetchPosts(1, true)} className="retry-btn">
+              Try Again
+            </button>
           </div>
         ) : loading ? (
-          <div>Loading posts...</div>
+          <div className="feed-loading">
+            <div className="loading-spinner">
+              <div className="spinner-ring"></div>
+              <div className="spinner-ring"></div>
+              <div className="spinner-ring"></div>
+            </div>
+            <p>Loading your feed...</p>
+          </div>
         ) : (
-          <div>
+          <>
             {state?.posts?.length > 0 ? (
               state.posts.map((post, index) => (
                 <PostCard
@@ -232,17 +282,32 @@ const Main = () => {
                 />
               ))
             ) : (
-              <div className="empty-feed">
-                <div className="empty-feed-content">
-                  <h3>Welcome to VibeNet!</h3>
-                  <p>Your feed will show posts from your friends.</p>
-                  <p>Start by adding friends to see their posts here.</p>
+              <div className="empty-feed glass-card">
+                <div className="empty-icon">🌟</div>
+                <h3>Welcome to VibeNet!</h3>
+                <p>Your feed is waiting for some action.</p>
+                <p className="sub-text">Start by adding friends or sharing your first post!</p>
+              </div>
+            )}
+            
+            {loadingMore && (
+              <div className="loading-more">
+                <div className="loading-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
                 </div>
               </div>
             )}
-            {loadingMore && <div>Loading more posts...</div>}
-            {!hasMore && state?.posts?.length > 0 && <div>No more posts.</div>}
-          </div>
+            
+            {!hasMore && state?.posts?.length > 0 && (
+              <div className="end-of-feed">
+                <div className="end-line"></div>
+                <span>You're all caught up! ✨</span>
+                <div className="end-line"></div>
+              </div>
+            )}
+          </>
         )}
       </div>
       <div ref={scrollRef} style={{ height: 1 }} />

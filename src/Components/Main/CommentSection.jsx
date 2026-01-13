@@ -3,6 +3,8 @@ import { AuthContext } from "../AppContext/AppContext";
 import apiClient from "../../config/api";
 import Comment from "./Comment";
 import "./CommentSection.css";
+import { FiSend, FiLoader } from "react-icons/fi";
+import { getProfileImageUrl, handleImageError } from "../../utils/imageUtils";
 
 const CommentSection = ({ postId }) => {
   const comment = useRef("");
@@ -17,8 +19,6 @@ const CommentSection = ({ postId }) => {
       setSubmitting(true);
       try {
         const response = await apiClient.addComment(postId, comment.current.value.trim());
-        
-        // Add new comment to the beginning of the comments array
         setComments(prevComments => [response.comment, ...prevComments]);
         comment.current.value = "";
       } catch (err) {
@@ -37,7 +37,6 @@ const CommentSection = ({ postId }) => {
         const response = await apiClient.getComments(postId);
         setComments(response.comments);
       } catch (err) {
-        alert(err.message);
         console.log(err.message);
       } finally {
         setLoading(false);
@@ -60,42 +59,56 @@ const CommentSection = ({ postId }) => {
   };
 
   return (
-    <div className="flex flex-col bg-white w-full py-2 rounded-b-3xl comment-section">
-      <div className="flex items-center">
-        <div className="mx-2">
+    <div className="comment-section">
+      {/* Comment Input */}
+      <div className="comment-input-wrapper">
+        <div className="comment-avatar-wrapper">
           <img
-            src={userData?.profileImage || user?.photoURL || "/user-default.jpg"}
+            src={getProfileImageUrl(user || userData)}
             alt="User"
-            className="comment-avatar"
+            className="comment-user-avatar"
+            onError={(e) => handleImageError(e, "/user-default.jpg")}
           />
         </div>
-        <div className="w-full pr-2">
-          <form className="flex items-center w-full" onSubmit={addComment}>
-            <input
-              name="comment"
-              type="text"
-              placeholder="Write a comment..."
-              className="w-full rounded-2xl outline-none border-0 p-2 bg-gray-100 comment-input"
-              ref={comment}
-              disabled={submitting}
-            />
-            <button 
-              className="hidden" 
-              type="submit"
-              disabled={submitting}
-            >
-              Submit
-            </button>
-          </form>
-        </div>
+        <form className="comment-form" onSubmit={addComment}>
+          <input
+            name="comment"
+            type="text"
+            placeholder="Write a comment..."
+            className="comment-input"
+            ref={comment}
+            disabled={submitting}
+          />
+          <button 
+            className={`comment-submit ${submitting ? 'submitting' : ''}`}
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting ? (
+              <FiLoader className="spin" size={18} />
+            ) : (
+              <FiSend size={18} />
+            )}
+          </button>
+        </form>
       </div>
       
+      {/* Comments List */}
       {loading ? (
-        <div className="text-center py-4">Loading comments...</div>
+        <div className="comments-loading">
+          <div className="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
       ) : (
         <div className="comments-list">
           {comments.length === 0 ? (
-            <div className="text-center py-4 text-gray-500">No comments yet</div>
+            <div className="no-comments">
+              <span className="no-comments-icon">💬</span>
+              <p>No comments yet. Be the first to share your thoughts!</p>
+            </div>
           ) : (
             comments.map((commentData) => (
               <Comment

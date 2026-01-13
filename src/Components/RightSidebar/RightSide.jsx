@@ -1,24 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import remove from "../../assets/images/delete.png";
 import { AuthContext } from "../AppContext/AppContext";
 import apiClient from "../../config/api";
 import "./RightSide.css";
-import styled from "styled-components";
-
-const SidebarContainer = styled.div`
-  background: ${({ theme }) => theme.card};
-  border-radius: 18px;
-  box-shadow: 0 2px 16px rgba(26,115,232,0.06);
-  padding: 24px 18px;
-  margin-top: 24px;
-  min-width: 260px;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 24px;
-`;
+import { FiSearch, FiUserPlus, FiUserMinus, FiUsers, FiChevronRight } from "react-icons/fi";
+import { getProfileImageUrl, handleImageError } from "../../utils/imageUtils";
 
 const RightSide = () => {
   const [input, setInput] = useState("");
@@ -34,12 +20,9 @@ const RightSide = () => {
       
       try {
         setLoading(true);
-        
-        // Fetch friends list
         const friendsResponse = await apiClient.getFriendsList();
         setFriends(friendsResponse.friends || []);
         
-        // Fetch user suggestions
         const suggestionsResponse = await apiClient.getUserSuggestions(5);
         setSuggestions(suggestionsResponse.suggestions || []);
       } catch (error) {
@@ -59,7 +42,7 @@ const RightSide = () => {
   };
 
   const removeFriend = async (friendId, friendName) => {
-    if (!window.confirm(`Are you sure you want to remove ${friendName} as a friend?`)) {
+    if (!window.confirm(`Remove ${friendName} from friends?`)) {
       return;
     }
 
@@ -68,7 +51,6 @@ const RightSide = () => {
       setFriends(prev => prev.filter(friend => friend.id !== friendId));
     } catch (error) {
       console.error('Error removing friend:', error);
-      alert('Failed to remove friend. Please try again.');
     }
   };
 
@@ -76,10 +58,8 @@ const RightSide = () => {
     try {
       await apiClient.sendFriendRequest(userId);
       setSuggestions(prev => prev.filter(s => s.id !== userId));
-      alert('Friend request sent!');
     } catch (error) {
       console.error('Error sending friend request:', error);
-      alert('Failed to send friend request. Please try again.');
     }
   };
 
@@ -89,102 +69,145 @@ const RightSide = () => {
     }
   };
 
+  if (!user) return null;
+
   return (
-    <SidebarContainer>
-      {user && (
-        <div className="mx-2 mt-4">
-          <p className="font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
-            Friends ({friends.length}):
-          </p>
+    <div className="right-sidebar-content">
+      {/* Friends Section */}
+      <div className="sidebar-section">
+        <div className="section-header">
+          <div className="section-title">
+            <FiUsers className="section-icon" />
+            <h3>Friends</h3>
+            <span className="count-badge">{friends.length}</span>
+          </div>
+          <button 
+            className="see-all-btn"
+            onClick={() => navigate('/friend-requests')}
+          >
+            See All
+            <FiChevronRight size={16} />
+          </button>
+        </div>
+
+        {/* Search Input */}
+        <div className="search-wrapper">
+          <FiSearch className="search-icon" />
           <input
-            className="border-2 border-gray-600 outline-none mt-4 p-2 rounded-md bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-400 transition duration-300 w-full"
-            name="input"
-            value={input}
             type="text"
-            placeholder="Search friends"
+            placeholder="Search friends..."
+            value={input}
             onChange={(e) => setInput(e.target.value)}
+            className="search-input"
           />
+        </div>
+
+        {/* Friends List */}
+        <div className="friends-list">
           {loading ? (
-            <p className="mt-4 text-white text-sm">Loading friends...</p>
+            <div className="loading-state">
+              <div className="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
           ) : friends.length > 0 ? (
-            searchFriends(friends).map((friend) => (
-              <div
-                className="flex items-center justify-between bg-gray-600 hover:bg-gray-500 rounded-md p-2 my-2 transition duration-300 ease-in-out"
-                key={friend.id}
-              >
+            searchFriends(friends).slice(0, 5).map((friend) => (
+              <div className="friend-item" key={friend.id}>
                 <div 
-                  className="flex items-center cursor-pointer flex-1"
+                  className="friend-info"
                   onClick={() => navigateToProfile(friend.username)}
                 >
-                  <img
-                    src={friend.profileImage || "/src/assets/user-default.jpg"}
-                    alt="User avatar"
-                    className="suggestion-avatar w-8 h-8 rounded-full object-cover"
-                  />
-                  <p className="ml-4 font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
-                    {friend.name}
-                  </p>
+                  <div className="friend-avatar-wrapper">
+                    <img
+                      src={getProfileImageUrl(friend)}
+                      alt={friend.name}
+                      className="friend-avatar"
+                      onError={(e) => handleImageError(e, "/user-default.jpg")}
+                    />
+                    <div className={`status-dot ${friend.isOnline ? 'online' : ''}`}></div>
+                  </div>
+                  <div className="friend-details">
+                    <span className="friend-name">{friend.name}</span>
+                    <span className="friend-status">
+                      {friend.isOnline ? 'Online' : 'Offline'}
+                    </span>
+                  </div>
                 </div>
-                <div className="mr-2">
-                  <img
-                    onClick={() => removeFriend(friend.id, friend.name)}
-                    className="cursor-pointer w-5 h-5 hover:opacity-70"
-                    src={remove}
-                    alt="removeFriend"
-                  />
-                </div>
+                <button
+                  className="remove-btn"
+                  onClick={() => removeFriend(friend.id, friend.name)}
+                  title="Remove friend"
+                >
+                  <FiUserMinus size={16} />
+                </button>
               </div>
             ))
           ) : (
-            <p className="mt-4 font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
-              No friends yet. Send friend requests to connect!
-            </p>
+            <div className="empty-state">
+              <span className="empty-icon">👥</span>
+              <p>No friends yet</p>
+              <span className="empty-hint">Start connecting with people!</span>
+            </div>
           )}
         </div>
-      )}
-      
-      {user && (
-        <div className="mx-2 mt-6">
-          <p className="font-roboto font-medium text-sm text-white no-underline tracking-normal leading-none">
-            Friend Suggestions:
-          </p>
-          <div className="mt-4">
-            {loading ? (
-              <p className="text-white text-sm">Loading suggestions...</p>
-            ) : suggestions.length === 0 ? (
-              <p className="text-white text-sm opacity-70">No suggestions available</p>
-            ) : (
-              suggestions.map((suggestion) => (
-                <div key={suggestion.id} className="flex items-center justify-between bg-gray-600 hover:bg-gray-500 rounded-md p-2 my-2 transition duration-300">
-                  <div 
-                    className="flex items-center cursor-pointer flex-1"
-                    onClick={() => navigateToProfile(suggestion.username)}
-                  >
-                    <img 
-                      src={suggestion.profileImage || "/src/assets/user-default.jpg"} 
-                      alt="avatar" 
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <div className="ml-3">
-                      <p className="text-white text-sm font-medium">{suggestion.name}</p>
-                      <p className="text-gray-300 text-xs">@{suggestion.username}</p>
-                    </div>
-                  </div>
-                  <button
-                    className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded-md transition duration-200"
-                    onClick={() => sendFriendRequest(suggestion.id)}
-                  >
-                    Add Friend
-                  </button>
-                </div>
-              ))
-            )}
+      </div>
+
+      {/* Suggestions Section */}
+      <div className="sidebar-section">
+        <div className="section-header">
+          <div className="section-title">
+            <FiUserPlus className="section-icon" />
+            <h3>Suggestions</h3>
           </div>
         </div>
-      )}
-    </SidebarContainer>
+
+        <div className="suggestions-list">
+          {loading ? (
+            <div className="loading-state">
+              <div className="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          ) : suggestions.length > 0 ? (
+            suggestions.map((suggestion) => (
+              <div className="suggestion-item" key={suggestion.id}>
+                <div 
+                  className="suggestion-info"
+                  onClick={() => navigateToProfile(suggestion.username)}
+                >
+                  <img
+                    src={getProfileImageUrl(suggestion)}
+                    alt={suggestion.name}
+                    className="suggestion-avatar"
+                    onError={(e) => handleImageError(e, "/user-default.jpg")}
+                  />
+                  <div className="suggestion-details">
+                    <span className="suggestion-name">{suggestion.name}</span>
+                    <span className="suggestion-username">@{suggestion.username}</span>
+                  </div>
+                </div>
+                <button
+                  className="add-friend-btn"
+                  onClick={() => sendFriendRequest(suggestion.id)}
+                >
+                  <FiUserPlus size={16} />
+                  <span>Add</span>
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state small">
+              <p>No suggestions available</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default RightSide;
-

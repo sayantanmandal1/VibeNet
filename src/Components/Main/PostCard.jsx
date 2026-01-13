@@ -1,20 +1,33 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
-import avatar from "../../assets/images/avatar.jpg";
-import like from "../../assets/images/like.png";
-import comment from "../../assets/images/comment.png";
-import remove from "../../assets/images/delete.png";
 import { AuthContext } from "../AppContext/AppContext";
 import apiClient from "../../config/api";
 import CommentSection from "./CommentSection";
 import FriendRequestButton from "../Pages/FriendRequestButton";
 import { getProfileImageUrl, getPostImageUrl, handleImageError } from "../../utils/imageUtils";
+import { FiHeart, FiMessageCircle, FiTrash2, FiMoreHorizontal, FiShare2, FiBookmark } from "react-icons/fi";
 
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '';
   const date = new Date(timestamp);
-  return date.toLocaleString();
+  const now = new Date();
+  const diff = now - date;
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+  });
 };
 
 const PostCard = ({ post, onPostUpdate }) => {
@@ -24,6 +37,7 @@ const PostCard = ({ post, onPostUpdate }) => {
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likesCount);
   const [loading, setLoading] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const handleOpen = (e) => {
     e.preventDefault();
@@ -34,13 +48,19 @@ const PostCard = ({ post, onPostUpdate }) => {
     e.preventDefault();
     if (loading) return;
     
+    // Optimistic update
+    setIsLiked(!isLiked);
+    setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+    
     setLoading(true);
     try {
       const response = await apiClient.likePost(post.id);
       setIsLiked(response.isLiked);
       setLikesCount(response.likesCount);
     } catch (err) {
-      alert(err.message);
+      // Revert on error
+      setIsLiked(isLiked);
+      setLikesCount(likesCount);
       console.log(err.message);
     } finally {
       setLoading(false);
@@ -52,7 +72,6 @@ const PostCard = ({ post, onPostUpdate }) => {
     if (loading) return;
     
     if (user?.id !== post.user.id && userData?.id !== post.user.id) {
-      alert("You can't delete other users' posts!");
       return;
     }
 
@@ -61,7 +80,7 @@ const PostCard = ({ post, onPostUpdate }) => {
       try {
         await apiClient.deletePost(post.id);
         if (onPostUpdate) {
-          onPostUpdate(1, true); // Refresh posts
+          onPostUpdate(1, true);
         }
       } catch (err) {
         alert(err.message);
@@ -72,10 +91,6 @@ const PostCard = ({ post, onPostUpdate }) => {
     }
   };
 
-  // Remove unused functions - these are handled by FriendRequestButton component
-  // const handleFollow = async () => { ... }
-  // const addUser = async () => { ... }
-
   const navigateToProfile = () => {
     if (post.user.username) {
       navigate(`/profile/${post.user.username}`);
@@ -85,90 +100,137 @@ const PostCard = ({ post, onPostUpdate }) => {
   const isOwnPost = user?.id === post.user.id || userData?.id === post.user.id;
 
   return (
-    <div className="post-card mb-4">
-      <div className="post-header">
-        <img
-          src={getProfileImageUrl(post.user)}
-          alt="avatar"
-          className="post-avatar cursor-pointer"
-          onClick={navigateToProfile}
-          onError={(e) => handleImageError(e, avatar)}
-        />
-        <div className="flex flex-col ml-4">
-          <p 
-            className="py-2 font-roboto font-medium text-sm text-gray-700 no-underline tracking-normal leading-none cursor-pointer hover:underline"
-            onClick={navigateToProfile}
-          >
-            {post.user.name}
-          </p>
-          <p className="font-roboto font-medium text-sm text-gray-700 no-underline tracking-normal leading-none">
-            Published: {formatTimestamp(post.createdAt)}
-          </p>
+    <article className="post-card glass-card">
+      {/* Post Header */}
+      <header className="post-header">
+        <div className="post-author" onClick={navigateToProfile}>
+          <div className="author-avatar-wrapper">
+            <img
+              src={getProfileImageUrl(post.user)}
+              alt={post.user.name}
+              className="author-avatar"
+              onError={(e) => handleImageError(e, "/user-default.jpg")}
+            />
+            <div className="online-indicator"></div>
+          </div>
+          <div className="author-info">
+            <span className="author-name">{post.user.name}</span>
+            <span className="post-time">{formatTimestamp(post.createdAt)}</span>
+          </div>
         </div>
-        {!isOwnPost && (
-          <div className="w-full flex justify-end mr-4">
+        
+        <div className="post-header-actions">
+          {!isOwnPost && (
             <FriendRequestButton 
               targetUserId={post.user.id}
               onStatusChange={() => {
-                // Optionally refresh posts when friendship status changes
                 if (onPostUpdate) {
                   onPostUpdate(1, true);
                 }
+              }}
+            />
+          )}
+          
+          <div className="menu-wrapper">
+            <button 
+              className="menu-btn"
+              onClick={() => setShowMenu(!showMenu)}
+            >
+              <FiMoreHorizontal size={20} />
+            </button>
+            
+            {showMenu && (
+              <div className="dropdown-menu">
+                <button className="dropdown-item">
+                  <FiBookmark size={16} />
+                  <span>Save Post</span>
+                </button>
+                <button className="dropdown-item">
+                  <FiShare2 size={16} />
+                  <span>Share</span>
+                </button>
+                {isOwnPost && (
+                  <button 
+                    className="dropdown-item danger"
+                    onClick={deletePost}
+                  >
+                    <FiTrash2 size={16} />
+                    <span>Delete</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+      
+      {/* Post Content */}
+      <div className="post-content">
+        <p className="post-text">{post.content}</p>
+        
+        {post.imageUrl && (
+          <div className="post-image-wrapper">
+            <img 
+              className="post-image" 
+              src={getPostImageUrl(post.imageUrl)} 
+              alt="Post content"
+              onError={(e) => {
+                e.target.style.display = 'none';
               }}
             />
           </div>
         )}
       </div>
       
-      <div className="post-content">
-        <p className="ml-0 pb-4 font-roboto font-medium text-base text-gray-800 no-underline tracking-normal leading-normal">
-          {post.content}
-        </p>
-        {post.imageUrl && (
-          <img 
-            className="post-image" 
-            src={getPostImageUrl(post.imageUrl)} 
-            alt="postImage"
-            onError={(e) => {
-              console.log('Post image failed to load:', e.target.src);
-              e.target.style.display = 'none';
-            }}
-          />
-        )}
-      </div>
+      {/* Post Stats */}
+      {(likesCount > 0 || post.commentsCount > 0) && (
+        <div className="post-stats">
+          {likesCount > 0 && (
+            <span className="stat-item">
+              <span className="stat-icon like-icon">❤️</span>
+              {likesCount} {likesCount === 1 ? 'like' : 'likes'}
+            </span>
+          )}
+          {post.commentsCount > 0 && (
+            <span className="stat-item">
+              {post.commentsCount} {post.commentsCount === 1 ? 'comment' : 'comments'}
+            </span>
+          )}
+        </div>
+      )}
       
+      {/* Post Actions */}
       <div className="post-actions">
         <button
-          className={`post-action-button ${isLiked ? 'liked' : ''}`}
+          className={`action-btn ${isLiked ? 'liked' : ''}`}
           onClick={handleLike}
           disabled={loading}
         >
-          <img className="h-8 mr-2" src={like} alt="like" />
-          {likesCount > 0 && likesCount}
+          <FiHeart className={`action-icon ${isLiked ? 'filled' : ''}`} />
+          <span>Like</span>
         </button>
         
         <button
-          className="post-action-button"
+          className={`action-btn ${open ? 'active' : ''}`}
           onClick={handleOpen}
         >
-          <img className="h-8 mr-2" src={comment} alt="comment" />
-          Comments ({post.commentsCount})
+          <FiMessageCircle className="action-icon" />
+          <span>Comment</span>
         </button>
         
-        {isOwnPost && (
-          <button
-            className="post-action-button"
-            onClick={deletePost}
-            disabled={loading}
-          >
-            <img className="h-8 mr-2" src={remove} alt="delete" />
-            Delete
-          </button>
-        )}
+        <button className="action-btn">
+          <FiShare2 className="action-icon" />
+          <span>Share</span>
+        </button>
       </div>
       
-      {open && <CommentSection postId={post.id} />}
-    </div>
+      {/* Comments Section */}
+      {open && (
+        <div className="comments-wrapper">
+          <CommentSection postId={post.id} />
+        </div>
+      )}
+    </article>
   );
 };
 

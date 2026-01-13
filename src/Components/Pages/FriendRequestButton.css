@@ -1,167 +1,151 @@
+/* ============================================
+   FRIEND REQUEST BUTTON - GLASSMORPHISM DESIGN
+   ============================================ */
+
 .friend-request-button-container {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.friend-request-btn {
+.friend-actions {
   display: flex;
+  gap: 8px;
+}
+
+/* Base Button Styles */
+.friend-request-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 120px;
-  height: 36px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  white-space: nowrap;
 }
 
 .friend-request-btn:disabled {
-  cursor: not-allowed;
   opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .friend-request-btn svg {
-  width: 16px;
-  height: 16px;
+  flex-shrink: 0;
 }
 
 /* Add Friend Button */
 .friend-request-btn.add {
-  background-color: #0095f6;
-  color: white;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
 }
 
 .friend-request-btn.add:hover:not(:disabled) {
-  background-color: #0084e6;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }
 
 /* Request Sent Button */
 .friend-request-btn.sent {
-  background-color: #f0f0f0;
-  color: #666;
-  border: 1px solid #ddd;
+  background: rgba(124, 58, 237, 0.15);
+  color: #a855f7;
+  border-color: rgba(124, 58, 237, 0.3);
 }
 
 /* Friends Button */
 .friend-request-btn.friends {
-  background-color: #e8f5e8;
-  color: #2d7d32;
-  border: 1px solid #c8e6c9;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.friend-request-btn.friends:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+/* Remove Button */
+.friend-request-btn.remove {
+  background: rgba(239, 68, 68, 0.1);
+  color: rgba(239, 68, 68, 0.7);
+  border-color: rgba(239, 68, 68, 0.2);
+  padding: 10px 12px;
+}
+
+.friend-request-btn.remove:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 /* Accept Button */
 .friend-request-btn.accept {
-  background-color: #4caf50;
-  color: white;
+  background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
 }
 
 .friend-request-btn.accept:hover:not(:disabled) {
-  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
 }
 
 /* Decline Button */
 .friend-request-btn.decline {
-  background-color: #f44336;
-  color: white;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .friend-request-btn.decline:hover:not(:disabled) {
-  background-color: #da190b;
-}
-
-/* Remove Friend Button */
-.friend-request-btn.remove {
-  background-color: #fff;
-  color: #666;
-  border: 1px solid #ddd;
-  min-width: 36px;
-  width: 36px;
-  padding: 8px;
-}
-
-.friend-request-btn.remove:hover:not(:disabled) {
-  background-color: #f5f5f5;
-  color: #f44336;
+  background: rgba(239, 68, 68, 0.25);
 }
 
 /* Blocked Button */
 .friend-request-btn.blocked {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #ffcdd2;
+  background: rgba(107, 114, 128, 0.15);
+  color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(107, 114, 128, 0.3);
 }
 
 /* Login Prompt Button */
 .friend-request-btn.login-prompt {
-  background-color: #0095f6;
-  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .friend-request-btn.login-prompt:hover {
-  background-color: #0084e6;
-}
-
-/* Friend Actions Container */
-.friend-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 /* Error Message */
 .friend-request-error {
-  color: #f44336;
-  font-size: 12px;
-  text-align: center;
-  padding: 4px 8px;
-  background-color: #ffebee;
-  border-radius: 4px;
-  border: 1px solid #ffcdd2;
+  font-size: 0.75rem;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-/* Loading State */
-.friend-request-btn:disabled {
-  position: relative;
-}
-
-.friend-request-btn:disabled::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Responsive */
+@media (max-width: 600px) {
   .friend-request-btn {
-    font-size: 13px;
-    padding: 6px 12px;
-    min-width: 100px;
-    height: 32px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
   }
   
-  .friend-actions {
-    flex-direction: column;
-    gap: 6px;
+  .friend-request-btn span {
+    display: none;
   }
   
-  .friend-request-btn.remove {
-    width: 32px;
-    min-width: 32px;
-    padding: 6px;
+  .friend-request-btn svg {
+    margin: 0;
   }
 }

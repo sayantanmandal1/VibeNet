@@ -4,6 +4,7 @@ import { AuthContext } from "../AppContext/AppContext";
 import apiClient from "../../config/api";
 import { getProfileImageUrl, handleImageError } from "../../utils/imageUtils";
 import "./CardSection.css";
+import { FiUserPlus } from "react-icons/fi";
 
 const RealUsersSection = () => {
   const [users, setUsers] = useState([]);
@@ -17,7 +18,6 @@ const RealUsersSection = () => {
       
       try {
         setLoading(true);
-        // Fetch recent users or friends
         const response = await apiClient.getUserSuggestions(10);
         setUsers(response.suggestions || []);
       } catch (error) {
@@ -39,9 +39,15 @@ const RealUsersSection = () => {
 
   if (loading) {
     return (
-      <div className="card-section-scroll">
-        <div className="loading-users">
-          <p>Loading users...</p>
+      <div className="users-section">
+        <div className="loading-skeleton">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="skeleton-card">
+              <div className="skeleton-avatar"></div>
+              <div className="skeleton-text"></div>
+              <div className="skeleton-text short"></div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -49,41 +55,49 @@ const RealUsersSection = () => {
 
   if (users.length === 0) {
     return (
-      <div className="card-section-scroll">
-        <div className="no-users">
-          <p>No users to show</p>
-          <p className="text-sm opacity-70">Users will appear here as they join</p>
+      <div className="users-section">
+        <div className="empty-users">
+          <span className="empty-icon">🌟</span>
+          <p>No users to discover yet</p>
+          <span className="empty-hint">Check back soon!</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="card-section-scroll">
-      {users.map((userData) => (
-        <div 
-          key={userData.id} 
-          className="card-section-item user-card-clickable"
-          onClick={() => handleUserClick(userData.username)}
-        >
-          <div className="user-card">
-            <div className="user-avatar-container">
+    <div className="users-section">
+      <div className="users-grid">
+        {users.map((userData) => (
+          <div 
+            key={userData.id} 
+            className="user-card-item"
+            onClick={() => handleUserClick(userData.username)}
+          >
+            <div className="user-card-avatar">
               <img
                 src={getProfileImageUrl(userData)}
                 alt={userData.name}
-                className="user-avatar"
                 onError={(e) => handleImageError(e, '/user-default.jpg')}
               />
-              <div className={`status-indicator ${userData.isOnline ? 'online' : 'offline'}`}></div>
+              <div className={`user-status-indicator ${userData.isOnline ? 'online' : ''}`}></div>
             </div>
-            <div className="user-info">
-              <h4 className="user-name">{userData.name}</h4>
-              <p className="user-username">@{userData.username}</p>
-              <p className="user-status">{userData.isOnline ? 'Online' : 'Offline'}</p>
+            <div className="user-card-info">
+              <span className="user-card-name">{userData.name}</span>
+              <span className="user-card-username">@{userData.username}</span>
             </div>
+            <button 
+              className="user-card-action"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Add friend logic here
+              }}
+            >
+              <FiUserPlus size={16} />
+            </button>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };

@@ -5,97 +5,19 @@ import RightSide from "../RightSidebar/RightSide";
 import Main from "../Main/Main";
 import Footer from "../Footer/Footer";
 import NotificationSystem from "./NotificationSystem";
-import styled, { ThemeProvider, createGlobalStyle } from "styled-components";
 import { AuthContext } from "../AppContext/AppContext";
 import { useNavigate } from "react-router-dom";
-import { FiSettings, FiUser } from "react-icons/fi";
+import { FiSettings, FiUser, FiX } from "react-icons/fi";
 import { BiLogOut } from "react-icons/bi";
-
-const lightTheme = {
-  background: "#ffffff",
-  text: "#000000",
-  card: "#ffffff",
-  accent: "#1a73e8",
-};
-
-const GlobalStyle = createGlobalStyle`
-  body {
-    background: ${({ theme }) => theme.background};
-    color: ${({ theme }) => theme.text};
-    transition: background 0.3s, color 0.3s;
-  }
-`;
-
-const PageContainer = styled.div`
-  min-height: 100vh;
-  width: 100vw;
-  background: #ffffff !important;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #000000 !important;
-`;
-
-const FeedWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 48px 0 32px 0;
-  gap: 32px;
-  @media (max-width: 1200px) {
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    padding: 24px 0;
-  }
-`;
-
-const Sidebar = styled.div`
-  flex: 0 0 320px;
-  max-width: 320px;
-  min-width: 260px;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 2px 16px rgba(26,115,232,0.06);
-  padding: 24px 18px;
-  margin-top: 24px;
-  color: #000000 !important;
-  @media (max-width: 1200px) {
-    margin: 0 auto 24px auto;
-    width: 90vw;
-    min-width: unset;
-    max-width: unset;
-  }
-`;
-
-const FeedMain = styled.div`
-  flex: 1 1 700px;
-  max-width: 700px;
-  min-width: 0;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.06);
-  padding: 32px 24px 24px 24px;
-  margin-top: 24px;
-  color: #000000 !important;
-  @media (max-width: 1200px) {
-    width: 95vw;
-    padding: 16px 4px;
-    margin: 0 auto 24px auto;
-  }
-`;
+import "./Home.css";
 
 const Home = () => {
   const [notification, setNotification] = useState(null);
-  const { user } = useContext(AuthContext);
+  useContext(AuthContext); // Auth context for user state
   const [showLogout, setShowLogout] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    // signOutUser should be available from context
     if (typeof window !== "undefined") {
       localStorage.clear();
     }
@@ -103,59 +25,99 @@ const Home = () => {
   };
 
   return (
-    <ThemeProvider theme={lightTheme}>
-      <GlobalStyle />
-      <PageContainer>
-        <Navbar />
-        <div style={{ position: "fixed", top: 24, right: 32, zIndex: 2000, display: "flex", gap: 18 }}>
-          <FiUser
-            size={28}
-            style={{ cursor: "pointer", marginRight: 18 }}
-            onClick={() => navigate("/profile")}
-            title="My Profile"
-          />
-          <FiSettings
-            size={28}
-            style={{ cursor: "pointer", marginRight: 18 }}
-            onClick={() => navigate("/settings")}
-            title="Settings"
-          />
-          <BiLogOut
-            size={28}
-            style={{ cursor: "pointer" }}
-            onClick={() => setShowLogout(true)}
-            title="Logout"
-          />
-        </div>
-        {showLogout && (
-          <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.3)", zIndex: 3000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ background: "#fff", borderRadius: 16, padding: 32, boxShadow: "0 4px 32px rgba(0,0,0,0.12)", minWidth: 320, textAlign: "center" }}>
-              <h3 style={{ fontWeight: 700, fontSize: "1.2rem", marginBottom: 18 }}>Are you sure you want to logout?</h3>
-              <div style={{ display: "flex", gap: 18, justifyContent: "center" }}>
-                <button style={{ background: "#1a73e8", color: "#fff", border: "none", borderRadius: 8, padding: "10px 24px", fontWeight: 600, cursor: "pointer" }} onClick={handleLogout}>Yes</button>
-                <button style={{ background: "#eee", color: "#333", border: "none", borderRadius: 8, padding: "10px 24px", fontWeight: 600, cursor: "pointer" }} onClick={() => setShowLogout(false)}>No</button>
-              </div>
+    <div className="home-page">
+      {/* Animated background */}
+      <div className="home-bg-gradient"></div>
+      <div className="home-bg-orbs">
+        <div className="orb orb-1"></div>
+        <div className="orb orb-2"></div>
+        <div className="orb orb-3"></div>
+        <div className="orb orb-4"></div>
+      </div>
+      <div className="home-bg-grid"></div>
+
+      <Navbar />
+
+      {/* Quick action buttons */}
+      <div className="quick-actions">
+        <button
+          className="quick-action-btn"
+          onClick={() => navigate("/profile")}
+          title="My Profile"
+        >
+          <FiUser size={20} />
+        </button>
+        <button
+          className="quick-action-btn"
+          onClick={() => navigate("/settings")}
+          title="Settings"
+        >
+          <FiSettings size={20} />
+        </button>
+        <button
+          className="quick-action-btn logout"
+          onClick={() => setShowLogout(true)}
+          title="Logout"
+        >
+          <BiLogOut size={20} />
+        </button>
+      </div>
+
+      {/* Logout Modal */}
+      {showLogout && (
+        <div className="modal-overlay" onClick={() => setShowLogout(false)}>
+          <div className="logout-modal glass-card" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowLogout(false)}>
+              <FiX size={20} />
+            </button>
+            <div className="modal-icon">
+              <BiLogOut size={48} />
+            </div>
+            <h3>Ready to leave?</h3>
+            <p>Are you sure you want to logout from VibeNet?</p>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowLogout(false)}>
+                Stay
+              </button>
+              <button className="btn-confirm" onClick={handleLogout}>
+                Logout
+              </button>
             </div>
           </div>
-        )}
-        <FeedWrapper>
-          <Sidebar>
+        </div>
+      )}
+
+      {/* Main content */}
+      <div className="home-content">
+        <div className="feed-wrapper">
+          {/* Left Sidebar */}
+          <aside className="sidebar sidebar-left glass-card">
+            <div className="sidebar-header">
+              <h2>Discover People</h2>
+              <span className="badge">New</span>
+            </div>
             <RealUsersSection />
-          </Sidebar>
-          <FeedMain>
+          </aside>
+
+          {/* Main Feed */}
+          <main className="feed-main">
             <Main />
-          </FeedMain>
-          <Sidebar>
+          </main>
+
+          {/* Right Sidebar */}
+          <aside className="sidebar sidebar-right glass-card">
             <RightSide />
-          </Sidebar>
-        </FeedWrapper>
-        <Footer />
-        <NotificationSystem
-          notification={notification}
-          onClose={() => setNotification(null)}
-        />
-      </PageContainer>
-    </ThemeProvider>
+          </aside>
+        </div>
+      </div>
+
+      <Footer />
+
+      <NotificationSystem
+        notification={notification}
+        onClose={() => setNotification(null)}
+      />
+    </div>
   );
 };
 
